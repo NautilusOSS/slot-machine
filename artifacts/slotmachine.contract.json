@@ -1,0 +1,184 @@
+{
+  "name": "SlotMachine",
+  "desc": "\n    A simple slot machine smart contract\n    ",
+  "methods": [
+    {
+      "name": "post_upgrade",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Called after upgrade"
+    },
+    {
+      "name": "get_block_seed",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "round"
+        }
+      ],
+      "readonly": true,
+      "returns": {
+        "type": "byte[32]"
+      }
+    },
+    {
+      "name": "deposit",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Deposit funds into the contract"
+    },
+    {
+      "name": "withdraw",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "amount",
+          "desc": "The amount of funds to withdraw in atomic units"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Withdraw funds from the contract\nOnly callable by contract owner"
+    },
+    {
+      "name": "get_bet_key",
+      "args": [
+        {
+          "type": "address",
+          "name": "address"
+        },
+        {
+          "type": "uint64",
+          "name": "amount"
+        },
+        {
+          "type": "uint64",
+          "name": "round"
+        },
+        {
+          "type": "uint64",
+          "name": "index"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "byte[56]"
+      }
+    },
+    {
+      "name": "get_max_bet",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the maximum bet amount"
+    },
+    {
+      "name": "spin",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "bet_amount"
+        },
+        {
+          "type": "uint64",
+          "name": "index",
+          "desc": "Used to determine which 8 bytes of the block seed to use."
+        },
+        {
+          "type": "uint64",
+          "name": "future_round_offset"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "byte[56]",
+        "desc": "r (uint): The round number of the spin."
+      },
+      "desc": "Spin the slot machine. Outcome is determined by the seed\nof future round."
+    },
+    {
+      "name": "claim",
+      "args": [
+        {
+          "type": "byte[56]",
+          "name": "bet_key",
+          "desc": "The key of the bet to claim"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "uint64",
+        "desc": "The payout for the bet"
+      },
+      "desc": "Claim a bet"
+    },
+    {
+      "name": "set_version",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "contract_version"
+        },
+        {
+          "type": "uint64",
+          "name": "deployment_version"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "approve_update",
+      "args": [
+        {
+          "type": "bool",
+          "name": "approval"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "grant_upgrader",
+      "args": [
+        {
+          "type": "address",
+          "name": "upgrader"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "transfer",
+      "args": [
+        {
+          "type": "address",
+          "name": "new_owner"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Transfer ownership of the contract to a new owner. Emits OwnershipTransferred event."
+    }
+  ],
+  "networks": {}
+}
