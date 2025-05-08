@@ -1,0 +1,137 @@
+{
+  "name": "SlotMachinePayoutModel",
+  "desc": "\n    A simple slot machine payout model\n    ",
+  "methods": [
+    {
+      "name": "get_max_payout_multiplier",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the maximum payout multiplier"
+    },
+    {
+      "name": "get_payout",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "bet_amount"
+        },
+        {
+          "type": "uint64",
+          "name": "r"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the payout for a bet"
+    },
+    {
+      "name": "set_version",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "contract_version"
+        },
+        {
+          "type": "uint64",
+          "name": "deployment_version"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "approve_update",
+      "args": [
+        {
+          "type": "bool",
+          "name": "approval"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "grant_upgrader",
+      "args": [
+        {
+          "type": "address",
+          "name": "upgrader"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "set_delegate",
+      "args": [
+        {
+          "type": "address",
+          "name": "delegate"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "participate",
+      "args": [
+        {
+          "type": "byte[32]",
+          "name": "vote_k"
+        },
+        {
+          "type": "byte[32]",
+          "name": "sel_k"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_fst"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_lst"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_kd"
+        },
+        {
+          "type": "byte[64]",
+          "name": "sp_key"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "transfer",
+      "args": [
+        {
+          "type": "address",
+          "name": "new_owner"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Transfer ownership of the contract to a new owner. Emits OwnershipTransferred event."
+    }
+  ],
+  "networks": {}
+}

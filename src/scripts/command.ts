@@ -3,6 +3,14 @@ import {
   SlotMachineClient,
   APP_SPEC as SlotMachineSpec,
 } from "./clients/SlotMachineClient.js";
+import {
+  SlotMachinePayoutModelClient,
+  APP_SPEC as SlotMachinePayoutModelSpec,
+} from "./clients/SlotMachinePayoutModelClient.js";
+import {
+  BeaconClient,
+  APP_SPEC as BeaconSpec,
+} from "./clients/BeaconClient.js";
 import { CONTRACT } from "ulujs";
 import algosdk from "algosdk";
 import * as dotenv from "dotenv";
@@ -33,23 +41,21 @@ export const sks = {
   player2: sk3,
 };
 
-console.log(addressses);
-
 // DEVNET
-// const ALGO_SERVER = "http://localhost";
-// const ALGO_INDEXER_SERVER = "http://localhost";
-//const ALGO_PORT = 4001;
-//const ALGO_INDEXER_PORT = 8980;
-const ALGO_PORT = 443;
-const ALGO_INDEXER_PORT = 443;
+const ALGO_SERVER = "http://localhost";
+const ALGO_INDEXER_SERVER = "http://localhost";
+const ALGO_PORT = 4001;
+const ALGO_INDEXER_PORT = 8980;
 
 // TESTNET
 // const ALGO_SERVER = "https://testnet-api.voi.nodely.dev";
 // const ALGO_INDEXER_SERVER = "https://testnet-idx.voi.nodely.dev";
 
 // MAINNET
-const ALGO_SERVER = "https://mainnet-api.voi.nodely.dev";
-const ALGO_INDEXER_SERVER = "https://mainnet-idx.voi.nodely.dev";
+// const ALGO_SERVER = "https://mainnet-api.voi.nodely.dev";
+// const ALGO_INDEXER_SERVER = "https://mainnet-idx.voi.nodely.dev";
+// const ALGO_PORT = 443;
+// const ALGO_INDEXER_PORT = 443;
 
 const algodServerURL = process.env.ALGOD_SERVER || ALGO_SERVER;
 const algodServerPort = process.env.ALGOD_PORT || ALGO_PORT;
@@ -67,6 +73,8 @@ export const indexerClient = new algosdk.Indexer(
   indexerServerURL,
   indexerServerPort
 );
+
+console.log(addressses, algodServerURL);
 
 const signSendAndConfirm = async (txns: string[], sk: any) => {
   const stxns = txns
@@ -164,7 +172,7 @@ export const getEvents = async (appId: number) => {
   return events;
 };
 
-type DeployType = "SlotMachine";
+type DeployType = "SlotMachine" | "SlotMachinePayoutModel" | "Beacon";
 
 interface DeployOptions {
   type: DeployType;
@@ -184,6 +192,14 @@ export const deploy: any = async (options: DeployOptions) => {
   switch (options.type) {
     case "SlotMachine": {
       Client = SlotMachineClient;
+      break;
+    }
+    case "SlotMachinePayoutModel": {
+      Client = SlotMachinePayoutModelClient;
+      break;
+    }
+    case "Beacon": {
+      Client = BeaconClient;
       break;
     }
   }
@@ -231,7 +247,13 @@ export const postUpdate: any = async (options: PostUpdateOptions) => {
   const addr = options.sender || addressses.deployer;
   const sk = options.sk || sks.deployer;
   const acc = { addr, sk };
-  const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(SlotMachineSpec),
+    acc
+  );
   const postUpdateR = await ci.post_upgrade();
   if (options.debug) {
     console.log(postUpdateR);
@@ -248,7 +270,7 @@ export const postUpdate: any = async (options: PostUpdateOptions) => {
 program
   .command("post-update")
   .requiredOption("-a, --appId <number>", "Specify app id")
-  .requiredOption("-s, --sender <string>", "Specify sender")
+  .option("-s, --sender <string>", "Specify sender")
   .option("--debug", "Debug the post-update", false)
   .action(async (options: PostUpdateOptions) => {
     const success = await postUpdate({
@@ -366,7 +388,6 @@ interface SpinOptions {
   appId: number;
   amount: number;
   index?: number;
-  futureRoundOffset?: number;
   sender: string;
   sk: any;
   debug?: boolean;
@@ -384,8 +405,13 @@ export const spin: any = async (options: SpinOptions) => {
     makeABI(SlotMachineSpec),
     acc
   );
+  ci.setEnableParamsLastRoundMod(true);
+  ci.setEnableRawBytes(true);
   ci.setPaymentAmount(options.amount + 1e5 + 37700);
-  const spinR = await ci.spin(options.amount, options?.index || 0, options?.futureRoundOffset || 0);
+  const spinR = await ci.spin(
+    options.amount,
+    options?.index || 0,
+  );
   if (options.debug) {
     console.log(spinR);
   }
@@ -444,7 +470,8 @@ export const claim: any = async (options: ClaimOptions) => {
     makeABI(SlotMachineSpec),
     acc
   );
-  ci.setFee(3000);
+  ci.setEnableParamsLastRoundMod(true);
+  ci.setFee(4000);
   const claimR = await ci.claim(options.betKey);
   if (options.debug) {
     console.log(claimR);
@@ -455,4 +482,144 @@ export const claim: any = async (options: ClaimOptions) => {
     }
   }
   return claimR;
+};
+
+interface KillOptions {
+  appId: number;
+  sender: string;
+  sk: any;
+  delete?: boolean;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const kill: any = async (options: KillOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(SlotMachineSpec),
+    acc
+  );
+  if (options.delete) {
+    ci.setOnComplete(5); // deleteApplicationOC
+  }
+  ci.setFee(3000);
+  const killR = await ci.kill();
+  if (options.debug) {
+    console.log(killR);
+  }
+  if (killR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(killR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+program
+  .command("kill")
+  .requiredOption("-a, --appId <number>", "Specify app id")
+  .option("-s, --sender <string>", "Specify sender")
+  .option("--debug", "Debug the kill", false)
+  .option("--simulate", "Simulate the kill", false)
+  .option("--delete", "Delete the app", false)
+  .action(async (options: KillOptions) => {
+    const success = await kill({
+      ...options,
+      appId: Number(options.appId),
+    });
+    if (!success) {
+      console.log("Failed to kill");
+    }
+  });
+
+interface SetPayoutModelOptions {
+  appId: number;
+  payoutModelAppId: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const setPayoutModel: any = async (options: SetPayoutModelOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(SlotMachineSpec),
+    acc
+  );
+  const setPayoutModelR = await ci.set_payout_model(options.payoutModelAppId);
+  if (options.debug) {
+    console.log(setPayoutModelR);
+  }
+  if (setPayoutModelR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(setPayoutModelR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+program
+  .command("set-payout-model")
+  .requiredOption("-a, --appId <number>", "Specify app id")
+  .requiredOption(
+    "-p, --payoutModelAppId <number>",
+    "Specify payout model app id"
+  )
+  .requiredOption("-s, --sender <string>", "Specify sender")
+  .option("--debug", "Debug the set-payout-model", false)
+  .option("--simulate", "Simulate the set-payout-model", false)
+  .action(async (options: SetPayoutModelOptions) => {
+    const success = await setPayoutModel({
+      ...options,
+      appId: Number(options.appId),
+      payoutModelAppId: Number(options.payoutModelAppId),
+    });
+    if (!success) {
+      console.log("Failed to set payout model");
+    }
+  });
+
+interface TouchOptions {
+  appId: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const touch: any = async (options: TouchOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(BeaconSpec),
+    acc
+  );
+  const touchR = await ci.touch();
+  if (options.debug) {
+    console.log(touchR);
+  }
+  if (touchR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(touchR.txns, sk);
+    }
+    return true;
+  }
+  return false;
 };

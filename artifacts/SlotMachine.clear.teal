@@ -1,7 +1,7 @@
 #pragma version 10
 
 contract.SlotMachine.clear_state_program:
-    // src/src/contract.py:67
-    // class SlotMachine(Upgradeable):
+    // src/src/contract.py:309
+    // class SlotMachine(SlotMachineInterface, Upgradeable, Deleteable):
     int 1
     return

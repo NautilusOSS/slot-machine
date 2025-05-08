@@ -1,0 +1,74 @@
+#pragma version 10
+
+contract.SlotMachinePayoutModelInterface.approval_program:
+    // src/src/contract.py:159
+    // class SlotMachinePayoutModelInterface(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@5
+    method "get_payout(uint64,uint64)uint64"
+    txna ApplicationArgs 0
+    match main_get_payout_route@2
+    err // reject transaction
+
+main_get_payout_route@2:
+    // src/src/contract.py:164
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // src/src/contract.py:159
+    // class SlotMachinePayoutModelInterface(ARC4Contract):
+    txna ApplicationArgs 1
+    txna ApplicationArgs 2
+    // src/src/contract.py:164
+    // @arc4.abimethod
+    callsub get_payout
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_bare_routing@5:
+    // src/src/contract.py:159
+    // class SlotMachinePayoutModelInterface(ARC4Contract):
+    txn OnCompletion
+    !
+    assert // reject transaction
+    txn ApplicationID
+    !
+    assert // is creating
+    int 1
+    return
+
+
+// contract.SlotMachinePayoutModelInterface.get_payout(bet_amount: bytes, r: bytes) -> bytes:
+get_payout:
+    // src/src/contract.py:164-165
+    // @arc4.abimethod
+    // def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
+    proto 2 1
+    // src/src/contract.py:169
+    // return arc4.UInt64(self._calculate_bet_payout(bet_amount.native, r.native))
+    frame_dig -2
+    btoi
+    frame_dig -1
+    btoi
+    callsub _calculate_bet_payout
+    itob
+    retsub
+
+
+// contract.SlotMachinePayoutModelInterface._calculate_bet_payout(bet_amount: uint64, r: uint64) -> uint64:
+_calculate_bet_payout:
+    // src/src/contract.py:171-172
+    // @subroutine
+    // def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
+    proto 2 1
+    // src/src/contract.py:178
+    // return UInt64(0)
+    int 0
+    retsub

@@ -1,0 +1,7 @@
+#pragma version 10
+
+contract.SlotMachineInterface.clear_state_program:
+    // src/src/contract.py:245
+    // class SlotMachineInterface(ARC4Contract):
+    int 1
+    return

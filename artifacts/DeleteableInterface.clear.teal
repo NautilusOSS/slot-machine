@@ -1,0 +1,7 @@
+#pragma version 10
+
+contract.DeleteableInterface.clear_state_program:
+    // src/src/contract.py:37
+    // class DeleteableInterface(ARC4Contract):
+    int 1
+    return

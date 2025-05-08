@@ -1,0 +1,73 @@
+{
+  "name": "Beacon",
+  "desc": "\n    A simple beacon contract\n    ",
+  "methods": [
+    {
+      "name": "touch",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Touch the contract"
+    },
+    {
+      "name": "set_version",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "contract_version"
+        },
+        {
+          "type": "uint64",
+          "name": "deployment_version"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "approve_update",
+      "args": [
+        {
+          "type": "bool",
+          "name": "approval"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "grant_upgrader",
+      "args": [
+        {
+          "type": "address",
+          "name": "upgrader"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "transfer",
+      "args": [
+        {
+          "type": "address",
+          "name": "new_owner"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Transfer ownership of the contract to a new owner. Emits OwnershipTransferred event."
+    }
+  ],
+  "networks": {}
+}

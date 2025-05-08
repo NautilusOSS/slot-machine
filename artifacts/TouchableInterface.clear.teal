@@ -1,0 +1,7 @@
+#pragma version 10
+
+contract.TouchableInterface.clear_state_program:
+    // src/src/contract.py:67
+    // class TouchableInterface(ARC4Contract):
+    int 1
+    return

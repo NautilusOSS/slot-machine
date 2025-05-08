@@ -11,13 +11,101 @@ from algopy import (
     itxn,
     urange,
     Account,
+    OnCompleteAction,
+    ARC4Contract,
+    Application,
+    BigUInt,
 )
-from opensubmarine import Upgradeable
-from opensubmarine.utils.algorand import require_payment
+from opensubmarine import Upgradeable, Stakeable
+from opensubmarine.utils.algorand import require_payment, close_offline_on_delete
 
 # TODO migrate to opensubmarine.utils.types
+
 Bytes32: typing.TypeAlias = arc4.StaticArray[arc4.Byte, typing.Literal[32]]
 Bytes56: typing.TypeAlias = arc4.StaticArray[arc4.Byte, typing.Literal[56]]
+
+# TODO migrate to opensubmarine
+
+# <https://github.com/VoiNetwork/smart-contract-staking/blob/next/src/contract.py#L342>
+
+##################################################
+# Deleteable
+#   allows contract to be deleted
+##################################################
+
+
+class DeleteableInterface(ARC4Contract):
+    """
+    Interface for all abimethods of deletable contract.
+    """
+
+    def __init__(self) -> None:  # pragma: no cover
+        self.deletable = bool(1)
+
+    @arc4.abimethod
+    def on_delete(self) -> None:  # pragma: no cover
+        """
+        Delete the contract.
+        """
+        pass
+
+
+class Deleteable(DeleteableInterface):
+    def __init__(self) -> None:  # pragma: no cover
+        super().__init__()
+
+    @arc4.baremethod(allow_actions=["DeleteApplication"])
+    def on_delete(self) -> None:  # pragma: no cover
+        ##########################################
+        # WARNING: This app can be deleted by the creator (Development)
+        ##########################################
+        assert Txn.sender == Global.creator_address, "must be creator"
+        assert self.deletable == UInt64(1), "not approved"
+        ##########################################
+
+
+class TouchableInterface(ARC4Contract):
+    """
+    A simple touchable contract
+    """
+
+    @arc4.abimethod
+    def touch(self) -> None:
+        """
+        Touch the contract
+        """
+        pass
+
+
+class Touchable(TouchableInterface):
+    """
+    A simple touchable contract
+    """
+
+    def __init__(self) -> None:
+        pass
+
+
+# REM Beacon mostly for testing but can be used for production
+# especially when it comes to taking advantage of group resource
+# sharing
+
+
+class Beacon(Touchable, Upgradeable, Deleteable):
+    """
+    A simple beacon contract
+    """
+
+    def __init__(self) -> None:
+        # ownable state
+        self.owner = Global.creator_address
+        # upgradable state
+        self.upgrader = Global.creator_address
+        self.contract_version = UInt64()
+        self.deployment_version = UInt64()
+        self.updatable = bool(1)
+        # deleteable state
+        self.deletable = bool(1)
 
 
 # Storage
@@ -32,6 +120,11 @@ class Bet(arc4.Struct):
 
 
 # Events
+
+
+class Closed(arc4.Struct):
+    who: arc4.Address
+    close_remainder_to: arc4.Address
 
 
 class BetPlaced(arc4.Struct):
@@ -53,18 +146,162 @@ class BetClaimed(arc4.Struct):
 
 # Constants
 
-BOX_COST_BET = 37700
-MAX_RANDOM_NUMBER = 100000000
-MAX_EXTRA_PAYMENT = 1000000000000000000
-MAX_CLAIM_ROUND_DELTA = 1000
-MAX_PAYOUT_MULTIPLIER = 100
-ROUND_FUTURE_DELTA = 1
-MIN_BET_AMOUNT = 1000000
-CONTRACT_VERSION = 0
-DEPLOYMENT_VERSION = 0
+BOX_COST_BET = 37700  # 37700 microVOI
+MAX_RANDOM_NUMBER = 1000000000  # 1 billion
+MAX_EXTRA_PAYMENT = 1000000  # 1 VOI
+MAX_PAYOUT_MULTIPLIER = 100  # 100x
+ROUND_FUTURE_DELTA = 1  # 1 round in the future
+MAX_CLAIM_ROUND_DELTA = 1000  # 1000 rounds in the future
+MIN_BET_AMOUNT = 1000000  # 1 VOI
+MAX_BET_AMOUNT = 1000000000  # 1000 VOI
 
 
-class SlotMachine(Upgradeable):
+class SlotMachinePayoutModelInterface(ARC4Contract):
+    """
+    A simple slot machine payout model
+    """
+
+    @arc4.abimethod
+    def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
+        """
+        Get the payout for a bet
+        """
+        return arc4.UInt64(self._calculate_bet_payout(bet_amount.native, r.native))
+
+    @subroutine
+    def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
+        """
+        Simulate a single slot payout using weighted random thresholds.
+        Random number r is in [0, 1_000_000_000). Uses if/then/else-style logic
+        directly subtracting each probability from r until a match is found.
+        """
+        return UInt64(0)
+
+
+class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
+    """
+    A simple slot machine payout model
+    """
+
+    def __init__(self) -> None:
+        # ownable state
+        self.owner = Global.creator_address
+        # upgradable state
+        self.upgrader = Global.creator_address
+        self.contract_version = UInt64()
+        self.deployment_version = UInt64()
+        self.updatable = bool(1)
+        # deleteable state
+        self.deletable = bool(1)
+        # payout model state
+        self.max_payout_multiplier = UInt64(100)
+        # stakeable state
+
+    @arc4.abimethod
+    def get_max_payout_multiplier(self) -> arc4.UInt64:
+        """
+        Get the maximum payout multiplier
+        """
+        return arc4.UInt64(self.max_payout_multiplier)
+
+    @subroutine
+    def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
+        """
+        Simulate a single slot payout using weighted random thresholds.
+        Random number r is in [0, 1_000_000_000). Uses if/then/else-style logic
+        directly subtracting each probability from r until a match is found.
+        """
+        multipliers = arc4.StaticArray(
+            arc4.UInt64(100),  # 100x
+            arc4.UInt64(50),  # 50x
+            arc4.UInt64(20),  # 20x
+            arc4.UInt64(10),  # 10x
+            arc4.UInt64(5),  # 5x
+            arc4.UInt64(2),  # 2x
+        )
+        probabilities = arc4.StaticArray(
+            arc4.UInt64(82_758),  # ~0.00008275862069
+            arc4.UInt64(1_655_172),  # ~0.001655172414
+            arc4.UInt64(8_275_862),  # ~0.008275862069
+            arc4.UInt64(16_551_724),  # ~0.01655172414
+            arc4.UInt64(41_379_310),  # ~0.04137931034
+            arc4.UInt64(165_517_241),  # ~0.1655172414
+        )
+
+        for index in urange(6):
+            prob = probabilities[index].native
+            if r < prob:
+                return bet_amount * multipliers[index].native
+            r -= prob
+
+        return UInt64(0)
+
+
+class SlotMachineInterface(ARC4Contract):
+    """
+    A simple slot machine smart contract
+    """
+
+    @arc4.abimethod
+    def spin(self, bet_amount: arc4.UInt64, index: arc4.UInt64) -> Bytes56:
+        """
+        Spin the slot machine. Outcome is determined by the seed
+        of future round.
+
+        Args:
+            bet (uint): The player's wager.
+            index (uint): Player's choice of index.
+
+        Returns:
+            r (uint): The round number of the spin.
+        """
+        return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
+
+    @subroutine
+    def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
+        """
+        Spin the slot machine. Outcome is determined by the seed
+        of future round.
+
+        Args:
+            bet (uint): The player's wager.
+            index (uint): Player's choice of index.
+
+        Returns:
+            r (uint): The round number of the spin.
+        """
+        return Bytes.from_base64(
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+        )
+
+    @arc4.abimethod
+    def claim(self, bet_key: Bytes56) -> arc4.UInt64:
+        """
+        Claim a bet
+
+        Args:
+            bet_key: The key of the bet to claim
+
+        Returns:
+            payout: The payout for the bet
+        """
+        return arc4.UInt64(self._claim(bet_key.bytes))
+
+    @subroutine
+    def _claim(self, bet_key: Bytes) -> UInt64:
+        """
+        Claim a bet
+
+        Args:
+            bet_key: The key of the bet to claim
+
+        Returns:
+            payout: The payout for the bet
+        """
+        return UInt64(0)
+
+
+class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
     """
     A simple slot machine smart contract
     """
@@ -72,38 +309,26 @@ class SlotMachine(Upgradeable):
     def __init__(self) -> None:
         # ownable state
         self.owner = Global.creator_address  # set owner to creator
+        # stakeable state
+        self.delegate = Account()  # zero address
+        self.stakeable = bool(1)  # 1 (Default unlocked)
         # upgradable state
-        self.contract_version = UInt64(CONTRACT_VERSION)
-        self.deployment_version = UInt64(DEPLOYMENT_VERSION)
+        self.contract_version = UInt64()
+        self.deployment_version = UInt64()
         self.updatable = bool(1)
         self.upgrader = Global.creator_address
+        # deleteable state
+        self.deletable = bool(1)
         # slot machine state
         self.balance_total = UInt64()
         self.balance_available = UInt64()
         self.balance_locked = UInt64()
+        self.min_bet_amount = UInt64(MIN_BET_AMOUNT)  # 1 VOI
+        self.max_bet_amount = UInt64(MAX_BET_AMOUNT)  # 1000 VOI
+        self.payout_model = UInt64()  # app id of payout model
         self.bet = BoxMap(Bytes, Bet, key_prefix="")
-        # Define base and max house edge
-        self.base_house_edge_bps = UInt64(7000)  # 70% base edge (default 56.41%)
-        self.max_house_edge_bps = UInt64(9000)  # 90% maximum edge
-        self.min_house_edge_bps = UInt64(1000)  # 10% minimum edge
-        self.min_bet_amount = UInt64(1000000)  # 1 VOI
 
-    # owner deposit
-    # owner withdraw
-    # owner set house edge
-    # owner set min bet amount
-    # owner set max bet amount
-
-    # player bet
-    # player claim
-
-    @arc4.abimethod
-    def post_upgrade(self) -> None:
-        """
-        Called after upgrade
-        """
-        self.contract_version = UInt64(CONTRACT_VERSION)
-        self.deployment_version = UInt64(DEPLOYMENT_VERSION)
+    # guard methods
 
     @subroutine
     def only_owner(self) -> None:
@@ -112,13 +337,83 @@ class SlotMachine(Upgradeable):
         """
         assert Txn.sender == self.owner, "only owner can call this function"
 
-    @arc4.abimethod(readonly=True)
-    def get_block_seed(self, round: arc4.UInt64) -> Bytes32:
-        return Bytes32.from_bytes(self._get_block_seed(round.native))
+    # upgradeable methods
+
+    @arc4.abimethod
+    def post_upgrade(self) -> None:
+        """
+        Called after upgrade
+        """
+        assert Txn.sender == self.upgrader, "must be upgrader"
+        self.contract_version = UInt64()
+        self.deployment_version = UInt64()
+
+    # owner methods
+
+    @arc4.abimethod
+    def set_payout_model(self, app_id: arc4.UInt64) -> None:
+        """
+        Set the payout model
+        """
+        self.only_owner()
+        assert app_id.native > 0, "app id must be greater than 0"
+        self.payout_model = app_id.native
+
+    @arc4.abimethod
+    def set_min_bet_amount(self, min_bet_amount: arc4.UInt64) -> None:
+        """
+        Set the minimum bet amount
+        """
+        self.only_owner()
+        assert min_bet_amount.native > 0, "min bet amount must be greater than 0"
+        assert (
+            min_bet_amount.native <= self.max_bet_amount
+        ), "min bet amount must be less than max bet amount"
+        self.min_bet_amount = min_bet_amount.native
+
+    @arc4.abimethod
+    def set_max_bet_amount(self, max_bet_amount: arc4.UInt64) -> None:
+        """
+        Set the maximum bet amount
+        """
+        self.only_owner()
+        assert max_bet_amount.native > 0, "max bet amount must be greater than 0"
+        assert (
+            max_bet_amount.native >= self.min_bet_amount
+        ), "max bet amount must be greater than min bet amount"
+        self.max_bet_amount = max_bet_amount.native
+
+    @arc4.abimethod
+    def burn_upgreadable_fuse(self) -> None:
+        """
+        Burn the upgradeable fuse
+        """
+        self.only_owner()
+        self.updatable = UInt64(0)
+
+    @arc4.abimethod
+    def burn_stakeable_fuse(self) -> None:
+        """
+        Burn the stakeable fuse
+        """
+        self.only_owner()
+        self.stakeable = UInt64(0)
+
+    @arc4.abimethod
+    def burn_deletable_fuse(self) -> None:
+        """
+        Burn the deletable fuse
+        """
+        self.only_owner()
+        self.deletable = UInt64(0)
+
+    # block seed utils
 
     @subroutine
     def _get_block_seed(self, round: UInt64) -> Bytes:
         return op.Block.blk_seed(round)[-32:]
+
+    # bankroll management
 
     @arc4.abimethod
     def deposit(self) -> None:
@@ -146,6 +441,8 @@ class SlotMachine(Upgradeable):
         self.balance_available -= amount.native
         self.balance_total -= amount.native
 
+    # bet key utils
+
     @arc4.abimethod
     def get_bet_key(
         self,
@@ -169,154 +466,57 @@ class SlotMachine(Upgradeable):
             + arc4.UInt64(index).bytes
         )
 
+    # terminal methods
+
+    @arc4.abimethod(allow_actions=[OnCompleteAction.DeleteApplication])
+    def kill(self) -> None:
+        """
+        Kill the contract
+        """
+        assert Txn.sender == self.upgrader, "must be upgrader"
+        assert self.updatable == UInt64(1), "not approved"
+        assert self.deletable == UInt64(1), "not approved"
+        assert self.balance_locked == UInt64(0), "balance locked must be 0"
+        arc4.emit(Closed(arc4.Address(self.upgrader), arc4.Address(self.upgrader)))
+        close_offline_on_delete(self.upgrader)
+
+    # slot machine methods
+
+    # @arc4.abimethod
+    # def spin(
+    #     self,
+    #     bet_amount: arc4.UInt64,
+    #     index: arc4.UInt64,
+    # ) -> Bytes56:
+    #     """
+    #     Spin the slot machine. Outcome is determined by the seed
+    #     of future round.
+
+    #     Args:
+    #         bet (uint): The player's wager.
+    #         index (uint): Player's choice of index.
+
+    #     Returns:
+    #         r (uint): The round number of the spin.
+    #     """
+    #     return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
+
+    # override
     @subroutine
-    def _get_dynamic_house_edge(self, bet_amount: UInt64) -> UInt64:
-        """
-        Calculate dynamic house edge based on contract balance and bet amount
-        Returns house edge in basis points (1-10000)
-        """
-        # Use balance_available instead of total contract balance
-        contract_balance = self.balance_available
-
-        # Return maximum house edge if contract balance is too low
-        if contract_balance <= bet_amount:
-            return self.max_house_edge_bps
-
-        # Calculate risk ratio (bet amount as percentage of balance, in basis points)
-        risk_ratio = (bet_amount * UInt64(10000)) // contract_balance
-
-        # Start with base house edge
-        dynamic_edge = self.base_house_edge_bps
-
-        # If bet is small relative to a healthy balance, decrease house edge
-        # if risk_ratio < UInt64(100):  # If bet is less than 1% of balance
-        #     # Decrease edge by up to 20% of base edge when contract is very healthy
-        #     max_reduction = self.base_house_edge_bps // UInt64(5)
-        #     edge_reduction = (UInt64(100) - risk_ratio) * max_reduction // UInt64(100)
-        #     dynamic_edge -= edge_reduction
-        # If bet is large relative to balance, increase house edge
-        if risk_ratio > UInt64(1000):  # If bet is more than 10% of balance
-            edge_increase = (risk_ratio - UInt64(1000)) // UInt64(100)
-            dynamic_edge += edge_increase
-
-        # Ensure house edge stays within bounds
-        dynamic_edge = self.min(dynamic_edge, self.max_house_edge_bps)
-        dynamic_edge = self.max(dynamic_edge, self.min_house_edge_bps)
-
-        return dynamic_edge
-
-    @subroutine
-    def _calculate_bet_payout(
-        self, bet_amount: UInt64, r: UInt64, house_edge_bps: UInt64
-    ) -> UInt64:
-        """
-        Calculate the payout for a bet using dynamic house edge
-        """
-        assert r < MAX_RANDOM_NUMBER, "random number too large"
-
-        # Use dynamic house edge instead of fixed
-        house_edge_bps = self._get_dynamic_house_edge(bet_amount)
-        scaling_factor = UInt64(10000) - house_edge_bps
-
-        # Walk through each payout option with scaled probabilities
-        # Base probabilities that tuple[, UInt64]would give 100% return (no house edge)
-        # fair_payouts = [
-        #     (100, 1000000),  # 1% chance for 100x
-        #     (50, 2000000),  # 2% chance for 50x
-        #     (20, 5000000),  # 5% chance for 20x
-        #     (10, 10000000),  # 10% chance for 10x
-        #     (5, 20000000),  # 20% chance for 5x
-        #     (2, 62000000),  # 62% chance for 2x
-        # ]
-        # for multiplier, base_prob in fair_payouts:
-        #     scaled_prob = (base_prob * scaling_factor) // UInt64(10000)
-        #     if r < scaled_prob:
-        #         return bet_amount * multiplier
-        #     r -= scaled_prob
-        multipliers = arc4.StaticArray(
-            arc4.UInt64(100),
-            arc4.UInt64(50),
-            arc4.UInt64(20),
-            arc4.UInt64(10),
-            arc4.UInt64(5),
-            arc4.UInt64(2),
-        )
-        probabilities = arc4.StaticArray(
-            arc4.UInt64(1000000),
-            arc4.UInt64(2000000),
-            arc4.UInt64(5000000),
-            arc4.UInt64(10000000),
-            arc4.UInt64(20000000),
-            arc4.UInt64(62000000),
-        )
-        for index in urange(6):
-            multiplier = multipliers[index].native
-            base_prob = probabilities[index].native
-            scaled_prob = (base_prob * scaling_factor) // UInt64(10000)
-            if r < scaled_prob:
-                return bet_amount * multiplier
-            r -= scaled_prob
-
-        # If r remains after all payouts, it's a lose
-        return UInt64(0)
-
-    @arc4.abimethod
-    def get_max_bet(self) -> arc4.UInt64:
-        """
-        Get the maximum bet amount
-        """
-        return arc4.UInt64(self._get_max_bet())
-
-    @subroutine
-    def _get_max_bet(self) -> UInt64:
-        """
-        Calculate maximum bet based on available balance and max payout multiplier
-        Returns the maximum allowed bet in atomic units
-        """
-        # Max bet = available balance / max payout (100x)
-        return self.balance_available // UInt64(100)
-
-    @arc4.abimethod
-    def spin(
-        self,
-        bet_amount: arc4.UInt64,
-        index: arc4.UInt64,
-        future_round_offset: arc4.UInt64,
-    ) -> Bytes56:
+    def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
         """
         Spin the slot machine. Outcome is determined by the seed
         of future round.
 
         Args:
             bet (uint): The player's wager.
-            index (uint): Used to determine which 8 bytes of the block seed to use.
+            index (uint): Player's choice of index.
 
         Returns:
             r (uint): The round number of the spin.
         """
-        return Bytes56.from_bytes(
-            self._spin(bet_amount.native, index.native, future_round_offset.native)
-        )
-
-    @subroutine
-    def _spin(
-        self, bet_amount: UInt64, index: UInt64, future_round_offset: UInt64
-    ) -> Bytes:
-        """
-        Spin the slot machine. Outcome is determined by the seed
-        of future round.
-
-        Args:
-            bet (uint): The player's wager.
-
-        Returns:
-            r (uint): The round number of the spin.
-
-        """
-        assert index < UInt64(24), "index must be less than 24"
         assert bet_amount >= self.min_bet_amount, "bet amount too small"
-        max_bet = self._get_max_bet()
-        assert bet_amount <= max_bet, "bet amount too large"
+        assert bet_amount <= self.max_bet_amount, "bet amount too large"
         payment = require_payment(Txn.sender)
         assert payment >= bet_amount, "payment insufficient"
         extra_payment = payment - bet_amount
@@ -326,18 +526,18 @@ class SlotMachine(Upgradeable):
         assert (
             extra_payment <= MAX_EXTRA_PAYMENT
         ), "extra payment must be less than max extra payment"
-
         # Update balance tracking
+        #   Add bet amount to total balance
         self.balance_total += bet_amount
         self.balance_available += bet_amount  # Add bet amount to available first
         max_possible_payout = bet_amount * UInt64(MAX_PAYOUT_MULTIPLIER)
         self.balance_locked += max_possible_payout
         self.balance_available -= max_possible_payout
-
+        # Create bet
         round = Global.round
         bet_key = self._get_bet_key(Txn.sender, bet_amount, round, index)
         assert bet_key not in self.bet, "bet already exists"
-        claim_round = round + ROUND_FUTURE_DELTA + future_round_offset
+        claim_round = round + ROUND_FUTURE_DELTA
         self.bet[bet_key] = Bet(
             who=arc4.Address(Txn.sender),
             amount=arc4.UInt64(bet_amount),
@@ -356,19 +556,20 @@ class SlotMachine(Upgradeable):
         )
         return bet_key
 
-    @arc4.abimethod
-    def claim(self, bet_key: Bytes56) -> arc4.UInt64:
-        """
-        Claim a bet
+    # @arc4.abimethod
+    # def claim(self, bet_key: Bytes56) -> arc4.UInt64:
+    #     """
+    #     Claim a bet
 
-        Args:
-            bet_key: The key of the bet to claim
+    #     Args:
+    #         bet_key: The key of the bet to claim
 
-        Returns:
-            payout: The payout for the bet
-        """
-        return arc4.UInt64(self._claim(bet_key.bytes))
+    #     Returns:
+    #         payout: The payout for the bet
+    #     """
+    #     return arc4.UInt64(self._claim(bet_key.bytes))
 
+    # override
     @subroutine
     def _claim(self, bet_key: Bytes) -> UInt64:
         """
@@ -383,13 +584,13 @@ class SlotMachine(Upgradeable):
         bet = self.bet[bet_key].copy()
         # if round is greater than claim_round + MAX_CLAIM_ROUND_DELTA, the bet is expired
         # and we can return the box cost to the sender
-        if Global.round > bet.claim_round.native + UInt64(MAX_CLAIM_ROUND_DELTA):
+        if Global.round > bet.claim_round.native + MAX_CLAIM_ROUND_DELTA:
             del self.bet[bet_key]
-            # Release locked balance when bet expires
+            # Update balance tracking
+            #   Release locked balance and adjust available balance
             max_possible_payout = bet.amount.native * UInt64(MAX_PAYOUT_MULTIPLIER)
             self.balance_locked -= max_possible_payout
             self.balance_available += max_possible_payout
-
             itxn.Payment(receiver=Txn.sender, amount=BOX_COST_BET).submit()
             arc4.emit(
                 BetClaimed(
@@ -405,29 +606,36 @@ class SlotMachine(Upgradeable):
         # if round is less than claim_round + 1000, the bet is still active
         # and we need to calculate the payout
         else:
-            # Calculate start position based on index (each slice is 8 bytes)
-            start_pos = bet.index.native
-            r = (
-                arc4.UInt64.from_bytes(
-                    self._get_block_seed(bet.claim_round.native)[
-                        start_pos : start_pos + UInt64(8)
-                    ]
-                ).native
-                % MAX_RANDOM_NUMBER
+            # calculate r from block seed and bet key
+            combined = self._get_block_seed(bet.claim_round.native) + bet_key
+            hashed = op.sha256(combined)
+            r = arc4.UInt64.from_bytes(
+                arc4.UInt256(
+                    arc4.UInt256.from_bytes(hashed).native % BigUInt(1_000_000_000)
+                ).bytes[-8:]
             )
-            payout = self._calculate_bet_payout(
-                bet.amount.native, r, self.base_house_edge_bps
+            #########################################################
+            # get payout internal if subclass of SlotMachinePayoutModel
+            # otherwise call model to get payout
+            #########################################################
+            # payout = ar4.ab self._calculate_bet_payout(bet.amount.native, r)
+            payout, txn = arc4.abi_call(
+                SlotMachinePayoutModelInterface.get_payout,
+                bet.amount,
+                r,
+                app_id=Application(self.payout_model),
             )
-            # Release locked balance and adjust available balance
+            #########################################################
+            # Update balance tracking
+            #   Release locked balance and adjust available balance
             max_possible_payout = bet.amount.native * UInt64(MAX_PAYOUT_MULTIPLIER)
             self.balance_locked -= max_possible_payout
             self.balance_available += (
-                max_possible_payout - payout
+                max_possible_payout - payout.native
             )  # Release locked funds minus payout
-            self.balance_total -= payout  # Reduce total balance by payout amount
-
+            self.balance_total -= payout.native  # Reduce total balance by payout amount
             if payout > 0:
-                itxn.Payment(receiver=bet.who.native, amount=payout).submit()
+                itxn.Payment(receiver=bet.who.native, amount=payout.native).submit()
             del self.bet[bet_key]
             itxn.Payment(receiver=Txn.sender, amount=BOX_COST_BET).submit()
             arc4.emit(
@@ -437,15 +645,7 @@ class SlotMachine(Upgradeable):
                     confirmed_round=bet.confirmed_round,
                     index=bet.index,
                     claim_round=bet.claim_round,
-                    payout=arc4.UInt64(payout),
+                    payout=payout,
                 )
             )
-            return payout
-
-    @subroutine
-    def min(self, a: UInt64, b: UInt64) -> UInt64:
-        return a if a < b else b
-
-    @subroutine
-    def max(self, a: UInt64, b: UInt64) -> UInt64:
-        return a if a > b else b
+            return payout.native

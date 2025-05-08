@@ -1,0 +1,7 @@
+#pragma version 10
+
+contract.Deleteable.clear_state_program:
+    // src/src/contract.py:53
+    // class Deleteable(DeleteableInterface):
+    int 1
+    return

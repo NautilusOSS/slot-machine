@@ -1,0 +1,7 @@
+#pragma version 10
+
+contract.Beacon.clear_state_program:
+    // src/src/contract.py:94
+    // class Beacon(Touchable, Upgradeable, Deleteable):
+    int 1
+    return

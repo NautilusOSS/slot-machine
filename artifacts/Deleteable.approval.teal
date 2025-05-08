@@ -1,0 +1,94 @@
+#pragma version 10
+
+contract.Deleteable.approval_program:
+    txn ApplicationID
+    bnz main_entrypoint@2
+    callsub __init__
+
+main_entrypoint@2:
+    // src/src/contract.py:53
+    // class Deleteable(DeleteableInterface):
+    txn NumAppArgs
+    !
+    assert // reject transaction
+    int 0
+    int 5
+    txn OnCompletion
+    match main_create@5 main_on_delete@6
+    err // reject transaction
+
+main_create@5:
+    // src/src/contract.py:53
+    // class Deleteable(DeleteableInterface):
+    txn ApplicationID
+    !
+    assert // is creating
+    int 1
+    return
+
+main_on_delete@6:
+    // src/src/contract.py:57
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    txn ApplicationID
+    assert // is not creating
+    // src/src/contract.py:57-58
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    // def on_delete(self) -> None:  # pragma: no cover
+    callsub on_delete
+    int 1
+    return
+
+
+// contract.Deleteable.on_delete() -> void:
+on_delete:
+    // src/src/contract.py:57-58
+    // @arc4.baremethod(allow_actions=["DeleteApplication"])
+    // def on_delete(self) -> None:  # pragma: no cover
+    proto 0 0
+    // src/src/contract.py:59-62
+    // ##########################################
+    // # WARNING: This app can be deleted by the creator (Development)
+    // ##########################################
+    // assert Txn.sender == Global.creator_address, "must be creator"
+    txn Sender
+    global CreatorAddress
+    ==
+    assert // must be creator
+    // src/src/contract.py:63
+    // assert self.deletable == UInt64(1), "not approved"
+    int 0
+    // src/src/contract.py:43
+    // self.deletable = bool(1)
+    byte "deletable"
+    // src/src/contract.py:63
+    // assert self.deletable == UInt64(1), "not approved"
+    app_global_get_ex
+    assert // check self.deletable exists
+    int 1
+    ==
+    assert // not approved
+    retsub
+
+
+// contract.Deleteable.__init__() -> void:
+__init__:
+    // src/src/contract.py:54
+    // def __init__(self) -> None:  # pragma: no cover
+    proto 0 0
+    // src/src/contract.py:55
+    // super().__init__()
+    callsub DeleteableInterface.__init__
+    retsub
+
+
+// contract.DeleteableInterface.__init__() -> void:
+DeleteableInterface.__init__:
+    // src/src/contract.py:42
+    // def __init__(self) -> None:  # pragma: no cover
+    proto 0 0
+    // src/src/contract.py:43
+    // self.deletable = bool(1)
+    byte "deletable"
+    int 1
+    app_global_put
+    retsub

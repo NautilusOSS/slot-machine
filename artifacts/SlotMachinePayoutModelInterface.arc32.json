@@ -1,0 +1,61 @@
+{
+    "hints": {
+        "get_payout(uint64,uint64)uint64": {
+            "call_config": {
+                "no_op": "CALL"
+            }
+        }
+    },
+    "source": {
+        "approval": "I3ByYWdtYSB2ZXJzaW9uIDEwCgpjb250cmFjdC5TbG90TWFjaGluZVBheW91dE1vZGVsSW50ZXJmYWNlLmFwcHJvdmFsX3Byb2dyYW06CiAgICAvLyBzcmMvc3JjL2NvbnRyYWN0LnB5OjE1OQogICAgLy8gY2xhc3MgU2xvdE1hY2hpbmVQYXlvdXRNb2RlbEludGVyZmFjZShBUkM0Q29udHJhY3QpOgogICAgdHhuIE51bUFwcEFyZ3MKICAgIGJ6IG1haW5fYmFyZV9yb3V0aW5nQDUKICAgIG1ldGhvZCAiZ2V0X3BheW91dCh1aW50NjQsdWludDY0KXVpbnQ2NCIKICAgIHR4bmEgQXBwbGljYXRpb25BcmdzIDAKICAgIG1hdGNoIG1haW5fZ2V0X3BheW91dF9yb3V0ZUAyCiAgICBlcnIgLy8gcmVqZWN0IHRyYW5zYWN0aW9uCgptYWluX2dldF9wYXlvdXRfcm91dGVAMjoKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6MTY0CiAgICAvLyBAYXJjNC5hYmltZXRob2QKICAgIHR4biBPbkNvbXBsZXRpb24KICAgICEKICAgIGFzc2VydCAvLyBPbkNvbXBsZXRpb24gaXMgTm9PcAogICAgdHhuIEFwcGxpY2F0aW9uSUQKICAgIGFzc2VydCAvLyBpcyBub3QgY3JlYXRpbmcKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6MTU5CiAgICAvLyBjbGFzcyBTbG90TWFjaGluZVBheW91dE1vZGVsSW50ZXJmYWNlKEFSQzRDb250cmFjdCk6CiAgICB0eG5hIEFwcGxpY2F0aW9uQXJncyAxCiAgICB0eG5hIEFwcGxpY2F0aW9uQXJncyAyCiAgICAvLyBzcmMvc3JjL2NvbnRyYWN0LnB5OjE2NAogICAgLy8gQGFyYzQuYWJpbWV0aG9kCiAgICBjYWxsc3ViIGdldF9wYXlvdXQKICAgIGJ5dGUgMHgxNTFmN2M3NQogICAgc3dhcAogICAgY29uY2F0CiAgICBsb2cKICAgIGludCAxCiAgICByZXR1cm4KCm1haW5fYmFyZV9yb3V0aW5nQDU6CiAgICAvLyBzcmMvc3JjL2NvbnRyYWN0LnB5OjE1OQogICAgLy8gY2xhc3MgU2xvdE1hY2hpbmVQYXlvdXRNb2RlbEludGVyZmFjZShBUkM0Q29udHJhY3QpOgogICAgdHhuIE9uQ29tcGxldGlvbgogICAgIQogICAgYXNzZXJ0IC8vIHJlamVjdCB0cmFuc2FjdGlvbgogICAgdHhuIEFwcGxpY2F0aW9uSUQKICAgICEKICAgIGFzc2VydCAvLyBpcyBjcmVhdGluZwogICAgaW50IDEKICAgIHJldHVybgoKCi8vIGNvbnRyYWN0LlNsb3RNYWNoaW5lUGF5b3V0TW9kZWxJbnRlcmZhY2UuZ2V0X3BheW91dChiZXRfYW1vdW50OiBieXRlcywgcjogYnl0ZXMpIC0+IGJ5dGVzOgpnZXRfcGF5b3V0OgogICAgLy8gc3JjL3NyYy9jb250cmFjdC5weToxNjQtMTY1CiAgICAvLyBAYXJjNC5hYmltZXRob2QKICAgIC8vIGRlZiBnZXRfcGF5b3V0KHNlbGYsIGJldF9hbW91bnQ6IGFyYzQuVUludDY0LCByOiBhcmM0LlVJbnQ2NCkgLT4gYXJjNC5VSW50NjQ6CiAgICBwcm90byAyIDEKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6MTY5CiAgICAvLyByZXR1cm4gYXJjNC5VSW50NjQoc2VsZi5fY2FsY3VsYXRlX2JldF9wYXlvdXQoYmV0X2Ftb3VudC5uYXRpdmUsIHIubmF0aXZlKSkKICAgIGZyYW1lX2RpZyAtMgogICAgYnRvaQogICAgZnJhbWVfZGlnIC0xCiAgICBidG9pCiAgICBjYWxsc3ViIF9jYWxjdWxhdGVfYmV0X3BheW91dAogICAgaXRvYgogICAgcmV0c3ViCgoKLy8gY29udHJhY3QuU2xvdE1hY2hpbmVQYXlvdXRNb2RlbEludGVyZmFjZS5fY2FsY3VsYXRlX2JldF9wYXlvdXQoYmV0X2Ftb3VudDogdWludDY0LCByOiB1aW50NjQpIC0+IHVpbnQ2NDoKX2NhbGN1bGF0ZV9iZXRfcGF5b3V0OgogICAgLy8gc3JjL3NyYy9jb250cmFjdC5weToxNzEtMTcyCiAgICAvLyBAc3Vicm91dGluZQogICAgLy8gZGVmIF9jYWxjdWxhdGVfYmV0X3BheW91dChzZWxmLCBiZXRfYW1vdW50OiBVSW50NjQsIHI6IFVJbnQ2NCkgLT4gVUludDY0OgogICAgcHJvdG8gMiAxCiAgICAvLyBzcmMvc3JjL2NvbnRyYWN0LnB5OjE3OAogICAgLy8gcmV0dXJuIFVJbnQ2NCgwKQogICAgaW50IDAKICAgIHJldHN1Ygo=",
+        "clear": "I3ByYWdtYSB2ZXJzaW9uIDEwCgpjb250cmFjdC5TbG90TWFjaGluZVBheW91dE1vZGVsSW50ZXJmYWNlLmNsZWFyX3N0YXRlX3Byb2dyYW06CiAgICAvLyBzcmMvc3JjL2NvbnRyYWN0LnB5OjE1OQogICAgLy8gY2xhc3MgU2xvdE1hY2hpbmVQYXlvdXRNb2RlbEludGVyZmFjZShBUkM0Q29udHJhY3QpOgogICAgaW50IDEKICAgIHJldHVybgo="
+    },
+    "state": {
+        "global": {
+            "num_byte_slices": 0,
+            "num_uints": 0
+        },
+        "local": {
+            "num_byte_slices": 0,
+            "num_uints": 0
+        }
+    },
+    "schema": {
+        "global": {
+            "declared": {},
+            "reserved": {}
+        },
+        "local": {
+            "declared": {},
+            "reserved": {}
+        }
+    },
+    "contract": {
+        "name": "SlotMachinePayoutModelInterface",
+        "desc": "\n    A simple slot machine payout model\n    ",
+        "methods": [
+            {
+                "name": "get_payout",
+                "args": [
+                    {
+                        "type": "uint64",
+                        "name": "bet_amount"
+                    },
+                    {
+                        "type": "uint64",
+                        "name": "r"
+                    }
+                ],
+                "readonly": false,
+                "returns": {
+                    "type": "uint64"
+                },
+                "desc": "Get the payout for a bet"
+            }
+        ],
+        "networks": {}
+    },
+    "bare_call_config": {
+        "no_op": "CREATE"
+    }
+}

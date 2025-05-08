@@ -1,0 +1,52 @@
+{
+    "hints": {
+        "touch()void": {
+            "call_config": {
+                "no_op": "CALL"
+            }
+        }
+    },
+    "source": {
+        "approval": "I3ByYWdtYSB2ZXJzaW9uIDEwCgpjb250cmFjdC5Ub3VjaGFibGUuYXBwcm92YWxfcHJvZ3JhbToKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6ODAKICAgIC8vIGNsYXNzIFRvdWNoYWJsZShUb3VjaGFibGVJbnRlcmZhY2UpOgogICAgdHhuIE51bUFwcEFyZ3MKICAgIGJ6IG1haW5fYmFyZV9yb3V0aW5nQDUKICAgIG1ldGhvZCAidG91Y2goKXZvaWQiCiAgICB0eG5hIEFwcGxpY2F0aW9uQXJncyAwCiAgICBtYXRjaCBtYWluX3RvdWNoX3JvdXRlQDIKICAgIGVyciAvLyByZWplY3QgdHJhbnNhY3Rpb24KCm1haW5fdG91Y2hfcm91dGVAMjoKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6NzIKICAgIC8vIEBhcmM0LmFiaW1ldGhvZAogICAgdHhuIE9uQ29tcGxldGlvbgogICAgIQogICAgYXNzZXJ0IC8vIE9uQ29tcGxldGlvbiBpcyBOb09wCiAgICB0eG4gQXBwbGljYXRpb25JRAogICAgYXNzZXJ0IC8vIGlzIG5vdCBjcmVhdGluZwogICAgaW50IDEKICAgIHJldHVybgoKbWFpbl9iYXJlX3JvdXRpbmdANToKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6ODAKICAgIC8vIGNsYXNzIFRvdWNoYWJsZShUb3VjaGFibGVJbnRlcmZhY2UpOgogICAgdHhuIE9uQ29tcGxldGlvbgogICAgIQogICAgYXNzZXJ0IC8vIHJlamVjdCB0cmFuc2FjdGlvbgogICAgdHhuIEFwcGxpY2F0aW9uSUQKICAgICEKICAgIGFzc2VydCAvLyBpcyBjcmVhdGluZwogICAgaW50IDEKICAgIHJldHVybgo=",
+        "clear": "I3ByYWdtYSB2ZXJzaW9uIDEwCgpjb250cmFjdC5Ub3VjaGFibGUuY2xlYXJfc3RhdGVfcHJvZ3JhbToKICAgIC8vIHNyYy9zcmMvY29udHJhY3QucHk6ODAKICAgIC8vIGNsYXNzIFRvdWNoYWJsZShUb3VjaGFibGVJbnRlcmZhY2UpOgogICAgaW50IDEKICAgIHJldHVybgo="
+    },
+    "state": {
+        "global": {
+            "num_byte_slices": 0,
+            "num_uints": 0
+        },
+        "local": {
+            "num_byte_slices": 0,
+            "num_uints": 0
+        }
+    },
+    "schema": {
+        "global": {
+            "declared": {},
+            "reserved": {}
+        },
+        "local": {
+            "declared": {},
+            "reserved": {}
+        }
+    },
+    "contract": {
+        "name": "Touchable",
+        "desc": "\n    A simple touchable contract\n    ",
+        "methods": [
+            {
+                "name": "touch",
+                "args": [],
+                "readonly": false,
+                "returns": {
+                    "type": "void"
+                },
+                "desc": "Touch the contract"
+            }
+        ],
+        "networks": {}
+    },
+    "bare_call_config": {
+        "no_op": "CREATE"
+    }
+}

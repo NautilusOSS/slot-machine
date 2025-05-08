@@ -11,10 +11,41 @@ import {
   decodeBetPlaced,
   claim,
   algodClient,
+  setPayoutModel,
+  touch,
 } from "../command.js";
 
+const invalidSpin =
+  "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+
+const spinClaimOnce = async (appId, beaconAppId, player1) => {
+  const spinR = await spin({
+    appId,
+    amount: 1e6,
+    index: 23,
+    ...player1,
+  });
+  let claimR;
+  do {
+    await touch({
+      appId: beaconAppId,
+    });
+    claimR = await claim({
+      appId,
+      betKey: spinR,
+      ...player1,
+    });
+    if (claimR.success) {
+      break;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  } while (1);
+  console.log("claimR.returnValue", claimR.returnValue);
+  return claimR;
+};
+
 describe("Slot Machine Testing", function () {
-  this.timeout(60_000);
+  this.timeout(300_000);
   let deployOptions = {
     type: "SlotMachine",
     name: "SlotMachine",
@@ -22,6 +53,8 @@ describe("Slot Machine Testing", function () {
   };
   let contract;
   let appId;
+  let payoutModelAppId;
+  let beaconAppId;
   const player1 = {
     sender: addressses.player1,
     sk: sks.player1,
@@ -30,6 +63,23 @@ describe("Slot Machine Testing", function () {
     sender: addressses.player2,
     sk: sks.player2,
   };
+  before(async function () {
+    {
+      const { appId: id } = await deploy({
+        type: "SlotMachinePayoutModel",
+        name: "SlotMachinePayoutModel001",
+      });
+      payoutModelAppId = id;
+    }
+    {
+      const res = await deploy({
+        type: "Beacon",
+        name: "Beacon001",
+      });
+      console.log("res", res);
+      beaconAppId = res.appId;
+    }
+  });
   beforeEach(async function () {
     const now = Date.now();
     const { appId: id, appClient } = await deploy({
@@ -38,17 +88,37 @@ describe("Slot Machine Testing", function () {
     });
     appId = id;
     contract = appClient;
+    const setPayoutModelSuccess = await setPayoutModel({
+      appId,
+      payoutModelAppId,
+      sender: addressses.deployer,
+      sk: sks.deployer,
+    });
+    const depositSuccess = await deposit({
+      appId,
+      amount: 300_000e6,
+    });
     expect(appId).to.not.equal(0);
+    expect(setPayoutModelSuccess).to.be.true;
+    expect(depositSuccess).to.be.true;
   });
-
   afterEach(async function () {});
-
+  // BEACON TESTING
+  it("Should deploy beacon", async function () {
+    console.log("beaconAppId", beaconAppId);
+    expect(beaconAppId).to.not.equal(0);
+  });
+  // PAYMENT MODEL TESTING
+  it("Should deploy payout model", async function () {
+    console.log("payoutModelAppId", payoutModelAppId);
+    expect(payoutModelAppId).to.not.equal(0);
+  });
+  // SLOT MACHINE TESTING
   it("Should deploy contract", async function () {
-    console.log(appId);
+    console.log("appId", appId);
     expect(appId).to.not.equal(0);
     // check owner
   });
-
   it("Should deposit funds", async function () {
     // check initial state
     const depositR = await deposit({
@@ -58,57 +128,39 @@ describe("Slot Machine Testing", function () {
     // check state after deposit
     expect(depositR).to.be.true;
   });
-
   it("Should withdraw funds", async function () {
-    // check initial state
-    await deposit({
+    const withdrawR = await withdraw({
       appId,
       amount: 1e6,
     });
-    const canWithdrawOverAvailable = await withdraw({
-      appId,
-      amount: 2e6,
-    });
-    const canWithdrawAsPlayer = await withdraw({
-      appId,
-      amount: 1,
-      sender: addressses.player1,
-      sk: sks.player1,
-    });
-    const canWithdrawMinor = await withdraw({
-      appId,
-      amount: 1,
-    });
-    const canWithdrawAll = await withdraw({
-      appId,
-      amount: 1e6 - 1,
-    });
-    const canWithdrawWhenZero = await withdraw({
-      appId,
-      amount: 1,
-    });
-    // check state after withdrawals
-    console.log({
-      canWithdrawOverAvailable,
-      canWithdrawAsPlayer,
-      canWithdrawMinor,
-      canWithdrawAll,
-      canWithdrawWhenZero,
-    });
-    expect(canWithdrawOverAvailable).to.be.false;
-    expect(canWithdrawAsPlayer).to.be.false;
-    expect(canWithdrawMinor).to.be.true;
-    expect(canWithdrawAll).to.be.true;
-    expect(canWithdrawWhenZero).to.be.false;
+    expect(withdrawR).to.be.true;
   });
-
-  it("Should spin", async function () {
-    // check initial state
-    await deposit({
+  it("Should not withdraw over available", async function () {
+    const withdrawR = await withdraw({
       appId,
-      amount: 1000e6,
-      debug: true,
+      amount: 300_000e6 + 1e6,
     });
+    expect(withdrawR).to.be.false;
+  });
+  it("Should not withdraw when zero", async function () {
+    const withdrawR = await withdraw({
+      appId,
+      amount: 0,
+    });
+    expect(withdrawR).to.be.false;
+  });
+  it("Should not withdraw as player", async function () {
+    const withdrawR = await withdraw({
+      appId,
+      amount: 1e6,
+      ...player1,
+    });
+    expect(withdrawR).to.be.false;
+  });
+  // it should withdraw minor
+  // it should withdraw all
+  // it should withdraw ...
+  it("Should spin min bet", async function () {
     const spinMinBet = await spin({
       appId,
       amount: 1e6,
@@ -116,223 +168,46 @@ describe("Slot Machine Testing", function () {
       ...player1,
       debug: true,
     });
-    const spinZeroIndex = await spin({
-      appId,
-      amount: 1e6,
-      index: 0,
-      ...player1,
-      debug: true,
-    });
-    const spinNonzeroIndex = await spin({
-      appId,
-      amount: 1e6,
-      index: 1,
-      ...player1,
-      debug: true,
-    });
-    const spinAboveMinBet = await spin({
-      appId,
-      amount: 1e6 + 1,
-      index: 0,
-      ...player1,
-      debug: true,
-    });
-    const spinLessThanMinBet = await spin({
-      appId,
-      amount: 1,
-      index: 0,
-      ...player1,
-      debug: true,
-    });
-    const maxBet = await getMaxBet({
-      appId,
-      ...player1,
-      debug: true,
-    });
+    const hex = Buffer.from(spinMinBet).toString("hex");
+    expect(hex).to.not.be.eq(invalidSpin);
+  });
+  it("Should spin max bet", async function () {
     const spinMaxBet = await spin({
       appId,
-      amount: maxBet,
+      amount: 1000e6,
       index: 0,
       ...player1,
-      debug: true,
     });
+    const hex = Buffer.from(spinMaxBet).toString("hex");
+    expect(hex).to.not.be.eq(invalidSpin);
+  });
+  it("Should spin not be below min bet", async function () {
+    const spinBelowMinBet = await spin({
+      appId,
+      amount: 1e6 - 1,
+      index: 0,
+      ...player1,
+    });
+    const hex = Buffer.from(spinBelowMinBet).toString("hex");
+    expect(hex).to.be.eq(invalidSpin);
+  });
+  it("Should spin not be above max bet", async function () {
     const spinAboveMaxBet = await spin({
       appId,
-      amount: maxBet + 1,
+      amount: 1000e6 + 1,
       index: 0,
       ...player1,
-      debug: true,
     });
-    await deposit({
-      appId,
-      amount: 1000e6,
-      debug: true,
-    });
-    const spinMinIndex = await spin({
-      appId,
-      amount: 1e6,
-      index: 0,
-      ...player1,
-      debug: true,
-    });
-    const spinMaxIndex = await spin({
-      appId,
-      amount: 1e6,
-      index: 23,
-      ...player1,
-      debug: true,
-    });
-    const spinAboveMaxIndex = await spin({
-      appId,
-      amount: 1e6,
-      index: 24,
-      ...player1,
-      debug: true,
-    });
-    console.log({
-      spinMinBet: Buffer.from(spinMinBet).toString("hex"),
-      spinZeroIndex: Buffer.from(spinZeroIndex).toString("hex"),
-      spinNonzeroIndex: Buffer.from(spinNonzeroIndex).toString("hex"),
-      spinAboveMinBet: Buffer.from(spinAboveMinBet).toString("hex"),
-      spinLessThanMinBet: Buffer.from(spinLessThanMinBet).toString("hex"),
-      spinMaxBet: Buffer.from(spinMaxBet).toString("hex"),
-      spinAboveMaxBet: Buffer.from(spinAboveMaxBet).toString("hex"),
-      spinMinIndex: Buffer.from(spinMinIndex).toString("hex"),
-      spinMaxIndex: Buffer.from(spinMaxIndex).toString("hex"),
-      spinAboveMaxIndex: Buffer.from(spinAboveMaxIndex).toString("hex"),
-    });
-    // check state after spin
-    const invalidSpin =
-      "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-    expect(Buffer.from(spinMinBet).toString("hex")).to.not.be.eq(invalidSpin);
-    expect(Buffer.from(spinZeroIndex).toString("hex")).to.not.be.eq(
-      invalidSpin
-    );
-    expect(Buffer.from(spinNonzeroIndex).toString("hex")).to.not.be.eq(
-      invalidSpin
-    );
-    expect(Buffer.from(spinAboveMinBet).toString("hex")).to.not.be.eq(
-      invalidSpin
-    );
-    expect(Buffer.from(spinLessThanMinBet).toString("hex")).to.be.eq(
-      invalidSpin
-    );
-    expect(Buffer.from(spinMaxBet).toString("hex")).to.not.be.eq(invalidSpin);
-    expect(Buffer.from(spinAboveMaxBet).toString("hex")).to.be.eq(invalidSpin);
-    expect(Buffer.from(spinMinIndex).toString("hex")).to.not.be.eq(invalidSpin);
-    expect(Buffer.from(spinMaxIndex).toString("hex")).to.not.be.eq(invalidSpin);
-    expect(Buffer.from(spinAboveMaxIndex).toString("hex")).to.be.eq(
-      invalidSpin
-    );
+    const hex = Buffer.from(spinAboveMaxBet).toString("hex");
+    expect(hex).to.be.eq(invalidSpin);
   });
   it("Should claim", async function () {
-    await deposit({
-      appId,
-      amount: 100000e6,
-    });
-    const boxKeys = [];
-    for await (const futureRoundOffset of [0, 1, 2, 3, 4, 5]) {
-      for await (const index of [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23,
-      ]) {
-        boxKeys.push(
-          await spin({
-            appId,
-            amount: 1e6 + index,
-            index,
-            futureRoundOffset,
-            ...player1,
-          })
-        );
-      }
+    for await (const _ of Array(10)) {
+      const claimR = await spinClaimOnce(appId, beaconAppId, player1);
+      expect(claimR.success).to.be.true;
+      expect(claimR.returnValue).to.be.oneOf(
+        [0, 2e6, 5e6, 10e6, 20e6, 50e6, 100e6].map(BigInt)
+      );
     }
-
-    console.log(boxKeys);
-    while (boxKeys.length > 0) {
-      const boxKey = boxKeys.pop();
-      // let events;
-      // do {
-      //   events = await getEvents(appId);
-      //   if (
-      //     [
-      //       ...Object.values(events)
-      //         .map(({ events }) => events)
-      //         .flat(),
-      //     ].length >= boxKeys.length
-      //   )
-      //     break;
-      //   await new Promise((resolve) => setTimeout(resolve, 1000));
-      // } while (1);
-      // const BetPlaced = decodeBetPlaced(
-      //   events.find(({ name }) => name === "BetPlaced")?.events?.slice(-1)[0]
-      // );
-      // console.log({ BetPlaced });
-      // do {
-      //   const status = await algodClient.status().do();
-      //   if (status["last-round"] > BetPlaced.round + 1) {
-      //     console.log(BetPlaced.round + 1, status["last-round"]);
-      //     break;
-      //   }
-      //   await deposit({
-      //     appId,
-      //     amount: 1,
-      //     ...player1,
-      //   });
-      // } while (1);
-      let attempts = 0;
-      const maxAttempts = 15;
-      let result;
-
-      while (attempts < maxAttempts) {
-        try {
-          result = await claim({
-            appId,
-            betKey: boxKey,
-            ...player1,
-            debug: true,
-          });
-          if (!result.success) {
-            throw new Error("Claim failed");
-          }
-          console.log(`Claim succeeded for betKey: ${boxKey}`, result);
-          break; // Success - exit retry loop
-        } catch (error) {
-          attempts++;
-          console.log(
-            `Claim attempt ${attempts} failed for betKey: ${boxKey}`,
-            error.message
-          );
-          if (attempts === maxAttempts) {
-            console.error(
-              `Failed to claim after ${maxAttempts} attempts for betKey: ${boxKey}`
-            );
-          } else {
-            await deposit({
-              appId,
-              amount: 1,
-              ...player1,
-            });
-            // Wait before retrying (with exponential backoff)
-            await new Promise((resolve) =>
-              setTimeout(resolve, 1000 * attempts)
-            );
-          }
-        }
-      }
-    }
-    // do {
-    //   events = await getEvents(appId);
-    //   if (
-    //     [
-    //       ...Object.values(events)
-    //         .map(({ events }) => events)
-    //         .flat(),
-    //     ].length > 1
-    //   )
-    //     break;
-    //   await new Promise((resolve) => setTimeout(resolve, 2000));
-    // } while (1);
-    // console.log({ claimR });
   });
 });

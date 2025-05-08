@@ -1,0 +1,34 @@
+#pragma version 10
+
+contract.TouchableInterface.approval_program:
+    // src/src/contract.py:67
+    // class TouchableInterface(ARC4Contract):
+    txn NumAppArgs
+    bz main_bare_routing@5
+    method "touch()void"
+    txna ApplicationArgs 0
+    match main_touch_route@2
+    err // reject transaction
+
+main_touch_route@2:
+    // src/src/contract.py:72
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    int 1
+    return
+
+main_bare_routing@5:
+    // src/src/contract.py:67
+    // class TouchableInterface(ARC4Contract):
+    txn OnCompletion
+    !
+    assert // reject transaction
+    txn ApplicationID
+    !
+    assert // is creating
+    int 1
+    return

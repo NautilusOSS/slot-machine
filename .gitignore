@@ -5,3 +5,4 @@ artifacts
 .env*
 localnet
 commmands
+commands

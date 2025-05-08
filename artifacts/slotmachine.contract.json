@@ -12,17 +12,46 @@
       "desc": "Called after upgrade"
     },
     {
-      "name": "get_block_seed",
+      "name": "set_payout_model",
       "args": [
         {
           "type": "uint64",
-          "name": "round"
+          "name": "app_id"
         }
       ],
-      "readonly": true,
+      "readonly": false,
       "returns": {
-        "type": "byte[32]"
-      }
+        "type": "void"
+      },
+      "desc": "Set the payout model"
+    },
+    {
+      "name": "set_min_bet_amount",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "min_bet_amount"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Set the minimum bet amount"
+    },
+    {
+      "name": "set_max_bet_amount",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "max_bet_amount"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Set the maximum bet amount"
     },
     {
       "name": "deposit",
@@ -74,13 +103,13 @@
       }
     },
     {
-      "name": "get_max_bet",
+      "name": "kill",
       "args": [],
       "readonly": false,
       "returns": {
-        "type": "uint64"
+        "type": "void"
       },
-      "desc": "Get the maximum bet amount"
+      "desc": "Kill the contract"
     },
     {
       "name": "spin",
@@ -92,11 +121,7 @@
         {
           "type": "uint64",
           "name": "index",
-          "desc": "Used to determine which 8 bytes of the block seed to use."
-        },
-        {
-          "type": "uint64",
-          "name": "future_round_offset"
+          "desc": "Player's choice of index."
         }
       ],
       "readonly": false,
