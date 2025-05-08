@@ -16,7 +16,7 @@ from algopy import (
     Application,
     BigUInt,
 )
-from opensubmarine import Upgradeable, Stakeable
+from opensubmarine import Upgradeable, Stakeable, ARC200Token, arc200_Transfer
 from opensubmarine.utils.algorand import require_payment, close_offline_on_delete
 
 # TODO migrate to opensubmarine.utils.types
@@ -155,11 +155,33 @@ MAX_CLAIM_ROUND_DELTA = 1000  # 1000 rounds in the future
 MIN_BET_AMOUNT = 1000000  # 1 VOI
 MAX_BET_AMOUNT = 1000000000  # 1000 VOI
 
+class PayoutModel(arc4.Struct):
+    multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]
+    probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]
+
+
+class ModelUpdated(arc4.Struct):
+    old_model: PayoutModel
+    new_model: PayoutModel
 
 class SlotMachinePayoutModelInterface(ARC4Contract):
     """
     A simple slot machine payout model
     """
+
+    @arc4.abimethod(readonly=True)
+    def get_payout_model(self) -> PayoutModel:
+        """
+        Get the payout model
+        """
+        return self._initial_payout_model()
+    
+    @arc4.abimethod
+    def set_payout_model(self, multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]], probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]) -> None:
+        """
+        Set the payout model
+        """
+        pass
 
     @arc4.abimethod
     def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
@@ -176,6 +198,30 @@ class SlotMachinePayoutModelInterface(ARC4Contract):
         directly subtracting each probability from r until a match is found.
         """
         return UInt64(0)
+
+    @subroutine
+    def _initial_payout_model(self) -> PayoutModel:
+        """
+        Invalid payout model
+        """
+        return PayoutModel(
+            multipliers=arc4.StaticArray(
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+            ),
+            probabilities=arc4.StaticArray(
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+                arc4.UInt64(0),
+            ),
+        )
 
 
 class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
@@ -194,16 +240,39 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
         # deleteable state
         self.deletable = bool(1)
         # payout model state
-        self.max_payout_multiplier = UInt64(100)
-        # stakeable state
+        self.payout_model = self._initial_payout_model()
+
+
+    # guard methods
+
+    @subroutine
+    def only_owner(self) -> None:
+        """
+        Only callable by contract owner
+        """
+        assert Txn.sender == self.owner, "only owner can call this function"
+
+    # setter methods
 
     @arc4.abimethod
-    def get_max_payout_multiplier(self) -> arc4.UInt64:
+    def set_payout_model(self, multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]], probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]) -> None:
         """
-        Get the maximum payout multiplier
+        Set the payout model
         """
-        return arc4.UInt64(self.max_payout_multiplier)
+        self.only_owner()
+        self.payout_model = PayoutModel(multipliers=multipliers.copy(), probabilities=probabilities.copy())
+        arc4.emit(ModelUpdated(old_model=self.payout_model, new_model=self.payout_model))
 
+    # accessor methods
+
+    @arc4.abimethod(readonly=True)
+    def get_payout_model(self) -> PayoutModel:
+        """
+        Get the payout model
+        """
+        return self.payout_model
+
+    # override
     @subroutine
     def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
         """
@@ -211,27 +280,26 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
         Random number r is in [0, 1_000_000_000). Uses if/then/else-style logic
         directly subtracting each probability from r until a match is found.
         """
-        multipliers = arc4.StaticArray(
-            arc4.UInt64(100),  # 100x
-            arc4.UInt64(50),  # 50x
-            arc4.UInt64(20),  # 20x
-            arc4.UInt64(10),  # 10x
-            arc4.UInt64(5),  # 5x
-            arc4.UInt64(2),  # 2x
-        )
-        probabilities = arc4.StaticArray(
-            arc4.UInt64(82_758),  # ~0.00008275862069
-            arc4.UInt64(1_655_172),  # ~0.001655172414
-            arc4.UInt64(8_275_862),  # ~0.008275862069
-            arc4.UInt64(16_551_724),  # ~0.01655172414
-            arc4.UInt64(41_379_310),  # ~0.04137931034
-            arc4.UInt64(165_517_241),  # ~0.1655172414
-        )
-
+        # multipliers = arc4.StaticArray(
+        #     arc4.UInt64(100),  # 100x
+        #     arc4.UInt64(50),  # 50x
+        #     arc4.UInt64(20),  # 20x
+        #     arc4.UInt64(10),  # 10x
+        #     arc4.UInt64(5),  # 5x
+        #     arc4.UInt64(2),  # 2x
+        # )
+        # probabilities = arc4.StaticArray(
+        #     arc4.UInt64(82_758),  # ~0.00008275862069
+        #     arc4.UInt64(1_655_172),  # ~0.001655172414
+        #     arc4.UInt64(8_275_862),  # ~0.008275862069
+        #     arc4.UInt64(16_551_724),  # ~0.01655172414
+        #     arc4.UInt64(41_379_310),  # ~0.04137931034
+        #     arc4.UInt64(165_517_241),  # ~0.1655172414
+        # )
         for index in urange(6):
-            prob = probabilities[index].native
+            prob = self.payout_model.probabilities[index].native
             if r < prob:
-                return bet_amount * multipliers[index].native
+                return bet_amount * self.payout_model.multipliers[index].native
             r -= prob
 
         return UInt64(0)
@@ -389,7 +457,7 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         Burn the upgradeable fuse
         """
         self.only_owner()
-        self.updatable = UInt64(0)
+        self.updatable = False
 
     @arc4.abimethod
     def burn_stakeable_fuse(self) -> None:
@@ -397,7 +465,7 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         Burn the stakeable fuse
         """
         self.only_owner()
-        self.stakeable = UInt64(0)
+        self.stakeable = False
 
     @arc4.abimethod
     def burn_deletable_fuse(self) -> None:
@@ -405,7 +473,7 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         Burn the deletable fuse
         """
         self.only_owner()
-        self.deletable = UInt64(0)
+        self.deletable = False
 
     # block seed utils
 
@@ -441,9 +509,32 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         self.balance_available -= amount.native
         self.balance_total -= amount.native
 
+    # balance methods
+
+    @arc4.abimethod(readonly=True)
+    def get_balance_available(self) -> arc4.UInt64:
+        """
+        Get the available balance
+        """
+        return arc4.UInt64(self.balance_available)
+
+    @arc4.abimethod(readonly=True)
+    def get_balance_locked(self) -> arc4.UInt64:
+        """
+        Get the locked balance
+        """
+        return arc4.UInt64(self.balance_locked)
+
+    @arc4.abimethod(readonly=True)
+    def get_balance_total(self) -> arc4.UInt64:
+        """
+        Get the total balance
+        """
+        return arc4.UInt64(self.balance_total)
+
     # bet key utils
 
-    @arc4.abimethod
+    @arc4.abimethod(readonly=True)
     def get_bet_key(
         self,
         address: arc4.Address,
@@ -649,3 +740,78 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
                 )
             )
             return payout.native
+
+
+# class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
+#     """
+#     A simple yield bearing token
+#     """
+
+#     def __init__(self) -> None:
+#         # arc200 state
+#         self.name = String()
+#         self.symbol = String()
+#         self.decimals = UInt64()
+#         self.totalSupply = BigUInt()
+#         # ownable state
+#         self.owner = Global.creator_address
+#         # upgradeable state
+#         self.upgrader = Global.creator_address
+#         self.contract_version = UInt64()
+#         self.deployment_version = UInt64()
+#         self.updatable = bool(1)
+#         # deleteable state
+#         self.deletable = bool(1)
+#         # stakeable state
+#         self.delegate = Account()
+#         self.stakeable = bool(1)
+#         # yield bearing state
+#         self.yield_bearing_source = UInt64()
+
+#     # owner methods
+
+#     @arc4.abimethod
+#     def set_yield_bearing_source(self, app_id: arc4.UInt64) -> None:
+#         """
+#         Set the yield bearing source
+#         """
+#         self.only_owner()
+#         self.yield_bearing_source = app_id.native
+
+#     @arc4.abimethod
+#     def deposit(self, amount: arc4.UInt64) -> arc4.UInt256:
+#         """
+#         Deposit funds into the contract
+#         """
+#         return arc4.UInt256(self._deposit(amount.native))
+
+#     @subroutine
+#     def _deposit(self, amount: UInt64) -> BigUInt:
+#         """
+#         Deposit funds into the contract
+#         """
+#         assert amount > 0, "amount must be greater than 0"
+#         payment = require_payment(Txn.sender)
+#         required_payment = amount + 28500 if Txn.sender in self.balances else amount
+#         assert payment >= required_payment, "payment insufficient"
+#         bigAmount = BigUInt(amount)
+#         return self._mint(bigAmount)
+
+#     @subroutine
+#     def _get_yield_bearing_source_balance(self) -> UInt64:
+#         """
+#         Get the balance of the yield bearing source
+#         """
+#         available_balance, txn = arc4.abi_call(
+#             SlotMachineInterface.get_balance_available,
+#             app_id=Application(self.yield_bearing_source),
+#         )
+#         return available_balance
+
+
+#     @subroutine
+#     def _mint(self, amount: BigUInt) -> BigUInt:
+#         """
+#         Mint tokens
+#         """
+#         shares = amount if self.totalSupply == 0 else amount * self.totalSupply / self.balance[Global.creator_address]

@@ -5,14 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "test-ownable": "mocha --grep ownable",
-    "test-fundable": "mocha --grep fundable",
-    "test-lockable": "mocha --grep lockable",
-    "test-stakeable": "mocha --grep stakeable",
-    "test-upgradeable": "mocha --grep upgradeable",
-    "test-airdrop": "mocha --grep airdrop",
-    "test-staking": "mocha --grep staking",
-    "test-compensation": "mocha --grep compensation",
+    "test-payoutmodel": "mocha --grep 'Payout Model'",
     "start": "node index.js"
   },
   "author": "",

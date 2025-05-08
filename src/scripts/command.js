@@ -365,7 +365,7 @@ program
         console.log("Failed to kill");
     }
 });
-export const setPayoutModel = async (options) => {
+export const slotMachineSetPayoutModel = async (options) => {
     const addr = options.sender || addressses.deployer;
     const sk = options.sk || sks.deployer;
     const acc = { addr, sk };
@@ -390,7 +390,7 @@ program
     .option("--debug", "Debug the set-payout-model", false)
     .option("--simulate", "Simulate the set-payout-model", false)
     .action(async (options) => {
-    const success = await setPayoutModel({
+    const success = await slotMachineSetPayoutModel({
         ...options,
         appId: Number(options.appId),
         payoutModelAppId: Number(options.payoutModelAppId),
@@ -415,4 +415,18 @@ export const touch = async (options) => {
         return true;
     }
     return false;
+};
+export const setPayoutModel = async (options) => {
+    const client = new SlotMachinePayoutModelClient({
+        id: options.appId,
+        resolveBy: "id",
+        sender: {
+            addr: options.sender || addressses.deployer,
+            sk: options.sk || sks.deployer,
+        },
+    }, algodClient);
+    await client.setPayoutModel({
+        multipliers: options.multipliers.map(BigInt),
+        probabilities: options.probabilities.map(BigInt),
+    });
 };

@@ -1,7 +1,7 @@
 #pragma version 10
 
 contract.SlotMachinePayoutModelInterface.clear_state_program:
-    // src/src/contract.py:159
+    // src/src/contract.py:167
     // class SlotMachinePayoutModelInterface(ARC4Contract):
     int 1
     return

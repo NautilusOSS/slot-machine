@@ -408,10 +408,7 @@ export const spin: any = async (options: SpinOptions) => {
   ci.setEnableParamsLastRoundMod(true);
   ci.setEnableRawBytes(true);
   ci.setPaymentAmount(options.amount + 1e5 + 37700);
-  const spinR = await ci.spin(
-    options.amount,
-    options?.index || 0,
-  );
+  const spinR = await ci.spin(options.amount, options?.index || 0);
   if (options.debug) {
     console.log(spinR);
   }
@@ -538,7 +535,7 @@ program
     }
   });
 
-interface SetPayoutModelOptions {
+interface SlotMachineSetPayoutModelOptions {
   appId: number;
   payoutModelAppId: number;
   sender: string;
@@ -547,7 +544,9 @@ interface SetPayoutModelOptions {
   simulate?: boolean;
 }
 
-export const setPayoutModel: any = async (options: SetPayoutModelOptions) => {
+export const slotMachineSetPayoutModel: any = async (
+  options: SlotMachineSetPayoutModelOptions
+) => {
   const addr = options.sender || addressses.deployer;
   const sk = options.sk || sks.deployer;
   const acc = { addr, sk };
@@ -581,8 +580,8 @@ program
   .requiredOption("-s, --sender <string>", "Specify sender")
   .option("--debug", "Debug the set-payout-model", false)
   .option("--simulate", "Simulate the set-payout-model", false)
-  .action(async (options: SetPayoutModelOptions) => {
-    const success = await setPayoutModel({
+  .action(async (options: SlotMachineSetPayoutModelOptions) => {
+    const success = await slotMachineSetPayoutModel({
       ...options,
       appId: Number(options.appId),
       payoutModelAppId: Number(options.payoutModelAppId),
@@ -622,4 +621,32 @@ export const touch: any = async (options: TouchOptions) => {
     return true;
   }
   return false;
+};
+
+interface SetPayoutModelOptions {
+  appId: number;
+  multipliers: any;
+  probabilities: any;
+  sender?: string;
+  sk?: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const setPayoutModel: any = async (options: SetPayoutModelOptions) => {
+  const client = new SlotMachinePayoutModelClient(
+    {
+      id: options.appId,
+      resolveBy: "id",
+      sender: {
+        addr: options.sender || addressses.deployer,
+        sk: options.sk || sks.deployer,
+      },
+    },
+    algodClient
+  );
+  await client.setPayoutModel({
+    multipliers: options.multipliers.map(BigInt),
+    probabilities: options.probabilities.map(BigInt),
+  });
 };

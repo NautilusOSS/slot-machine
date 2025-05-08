@@ -1,9 +1,7 @@
 #pragma version 10
 
 contract.SlotMachinePayoutModel.clear_state_program:
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     int 1
     return

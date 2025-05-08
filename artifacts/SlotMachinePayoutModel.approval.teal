@@ -6,33 +6,48 @@ contract.SlotMachinePayoutModel.approval_program:
     callsub __init__
 
 main_entrypoint@2:
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn NumAppArgs
-    bz main_bare_routing@14
-    method "get_max_payout_multiplier()uint64"
+    bz main_bare_routing@13
+    method "set_payout_model(uint64[6],uint64[6])void"
+    method "get_payout_model()(uint64[6],uint64[6])"
     method "get_payout(uint64,uint64)uint64"
     method "set_version(uint64,uint64)void"
     method "approve_update(bool)void"
     method "grant_upgrader(address)void"
-    method "set_delegate(address)void"
-    method "participate(byte[32],byte[32],uint64,uint64,uint64,byte[64])void"
     method "transfer(address)void"
     txna ApplicationArgs 0
-    match main_get_max_payout_multiplier_route@4 main_get_payout_route@5 main_set_version_route@6 main_approve_update_route@7 main_grant_upgrader_route@8 main_set_delegate_route@9 main_participate_route@10 main_transfer_route@11
+    match main_set_payout_model_route@4 main_get_payout_model_route@5 main_get_payout_route@6 main_set_version_route@7 main_approve_update_route@8 main_grant_upgrader_route@9 main_transfer_route@10
     err // reject transaction
 
-main_get_max_payout_multiplier_route@4:
-    // src/src/contract.py:205
+main_set_payout_model_route@4:
+    // src/src/contract.py:257
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    callsub get_max_payout_multiplier
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
+    txna ApplicationArgs 1
+    txna ApplicationArgs 2
+    // src/src/contract.py:257
+    // @arc4.abimethod
+    callsub set_payout_model
+    int 1
+    return
+
+main_get_payout_model_route@5:
+    // src/src/contract.py:268
+    // @arc4.abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub get_payout_model
     byte 0x151f7c75
     swap
     concat
@@ -40,21 +55,19 @@ main_get_max_payout_multiplier_route@4:
     int 1
     return
 
-main_get_payout_route@5:
-    // src/src/contract.py:164
+main_get_payout_route@6:
+    // src/src/contract.py:186
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:164
+    // src/src/contract.py:186
     // @arc4.abimethod
     callsub get_payout
     byte 0x151f7c75
@@ -64,7 +77,7 @@ main_get_payout_route@5:
     int 1
     return
 
-main_set_version_route@6:
+main_set_version_route@7:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
     // @arc4.abimethod
     txn OnCompletion
@@ -72,10 +85,8 @@ main_set_version_route@6:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
@@ -84,7 +95,7 @@ main_set_version_route@6:
     int 1
     return
 
-main_approve_update_route@7:
+main_approve_update_route@8:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
     txn OnCompletion
@@ -92,10 +103,8 @@ main_approve_update_route@7:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
@@ -103,7 +112,7 @@ main_approve_update_route@7:
     int 1
     return
 
-main_grant_upgrader_route@8:
+main_grant_upgrader_route@9:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
     txn OnCompletion
@@ -111,10 +120,8 @@ main_grant_upgrader_route@8:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
@@ -122,50 +129,7 @@ main_grant_upgrader_route@8:
     int 1
     return
 
-main_set_delegate_route@9:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:81
-    // @arc4.abimethod
-    txn OnCompletion
-    !
-    assert // OnCompletion is NoOp
-    txn ApplicationID
-    assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
-    txna ApplicationArgs 1
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:81
-    // @arc4.abimethod
-    callsub set_delegate
-    int 1
-    return
-
-main_participate_route@10:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:89
-    // @arc4.abimethod
-    txn OnCompletion
-    !
-    assert // OnCompletion is NoOp
-    txn ApplicationID
-    assert // is not creating
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
-    txna ApplicationArgs 1
-    txna ApplicationArgs 2
-    txna ApplicationArgs 3
-    txna ApplicationArgs 4
-    txna ApplicationArgs 5
-    txna ApplicationArgs 6
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:89
-    // @arc4.abimethod
-    callsub participate
-    int 1
-    return
-
-main_transfer_route@11:
+main_transfer_route@10:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:22
     // @arc4.abimethod
     txn OnCompletion
@@ -176,27 +140,23 @@ main_transfer_route@11:
     int 1
     return
 
-main_bare_routing@14:
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+main_bare_routing@13:
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn OnCompletion
-    switch main_create@15 main_reject_bare_on_completion@18 main_reject_bare_on_completion@18 main_reject_bare_on_completion@18 main_on_update@16 main_on_delete@17
+    switch main_create@14 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_on_update@15 main_on_delete@16
     err // reject transaction
 
-main_create@15:
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+main_create@14:
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn ApplicationID
     !
     assert // is creating
     int 1
     return
 
-main_on_update@16:
+main_on_update@15:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:92
     // @arc4.baremethod(allow_actions=["UpdateApplication"])
     txn ApplicationID
@@ -208,7 +168,7 @@ main_on_update@16:
     int 1
     return
 
-main_on_delete@17:
+main_on_delete@16:
     // src/src/contract.py:57
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
@@ -220,42 +180,111 @@ main_on_delete@17:
     int 1
     return
 
-main_reject_bare_on_completion@18:
-    // src/src/contract.py:181-183
-    // class SlotMachinePayoutModel(
-    //     SlotMachinePayoutModelInterface, Upgradeable, Stakeable, Deleteable
-    // ):
+main_reject_bare_on_completion@17:
+    // src/src/contract.py:227
+    // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     err // reject transaction
 
 
-// contract.SlotMachinePayoutModel.get_max_payout_multiplier() -> bytes:
-get_max_payout_multiplier:
-    // src/src/contract.py:205-206
+// contract.SlotMachinePayoutModel.set_payout_model(multipliers: bytes, probabilities: bytes) -> void:
+set_payout_model:
+    // src/src/contract.py:257-258
     // @arc4.abimethod
-    // def get_max_payout_multiplier(self) -> arc4.UInt64:
-    proto 0 1
-    // src/src/contract.py:210
-    // return arc4.UInt64(self.max_payout_multiplier)
-    int 0
-    // src/src/contract.py:201-202
+    // def set_payout_model(self, multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]], probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]) -> None:
+    proto 2 0
+    // src/src/contract.py:262
+    // self.only_owner()
+    callsub only_owner
+    // src/src/contract.py:263
+    // self.payout_model = PayoutModel(multipliers=multipliers.copy(), probabilities=probabilities.copy())
+    frame_dig -2
+    frame_dig -1
+    concat
+    // src/src/contract.py:242-243
     // # payout model state
-    // self.max_payout_multiplier = UInt64(100)
-    byte "max_payout_multiplier"
-    // src/src/contract.py:210
-    // return arc4.UInt64(self.max_payout_multiplier)
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:263
+    // self.payout_model = PayoutModel(multipliers=multipliers.copy(), probabilities=probabilities.copy())
+    swap
+    app_global_put
+    // src/src/contract.py:264
+    // arc4.emit(ModelUpdated(old_model=self.payout_model, new_model=self.payout_model))
+    int 0
+    // src/src/contract.py:242-243
+    // # payout model state
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:264
+    // arc4.emit(ModelUpdated(old_model=self.payout_model, new_model=self.payout_model))
     app_global_get_ex
-    assert // check self.max_payout_multiplier exists
-    itob
+    assert // check self.payout_model exists
+    int 0
+    // src/src/contract.py:242-243
+    // # payout model state
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:264
+    // arc4.emit(ModelUpdated(old_model=self.payout_model, new_model=self.payout_model))
+    app_global_get_ex
+    assert // check self.payout_model exists
+    concat
+    method "ModelUpdated((uint64[6],uint64[6]),(uint64[6],uint64[6]))"
+    swap
+    concat
+    log
+    retsub
+
+
+// contract.SlotMachinePayoutModel.only_owner() -> void:
+only_owner:
+    // src/src/contract.py:248-249
+    // @subroutine
+    // def only_owner(self) -> None:
+    proto 0 0
+    // src/src/contract.py:253
+    // assert Txn.sender == self.owner, "only owner can call this function"
+    txn Sender
+    int 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
+    // self.owner = Account()
+    byte "owner"
+    // src/src/contract.py:253
+    // assert Txn.sender == self.owner, "only owner can call this function"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // only owner can call this function
+    retsub
+
+
+// contract.SlotMachinePayoutModel.get_payout_model() -> bytes:
+get_payout_model:
+    // src/src/contract.py:268-269
+    // @arc4.abimethod(readonly=True)
+    // def get_payout_model(self) -> PayoutModel:
+    proto 0 1
+    // src/src/contract.py:273
+    // return self.payout_model
+    int 0
+    // src/src/contract.py:242-243
+    // # payout model state
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:273
+    // return self.payout_model
+    app_global_get_ex
+    assert // check self.payout_model exists
     retsub
 
 
 // contract.SlotMachinePayoutModelInterface.get_payout(bet_amount: bytes, r: bytes) -> bytes:
 get_payout:
-    // src/src/contract.py:164-165
+    // src/src/contract.py:186-187
     // @arc4.abimethod
     // def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
     proto 2 1
-    // src/src/contract.py:169
+    // src/src/contract.py:191
     // return arc4.UInt64(self._calculate_bet_payout(bet_amount.native, r.native))
     frame_dig -2
     btoi
@@ -268,65 +297,95 @@ get_payout:
 
 // contract.SlotMachinePayoutModel._calculate_bet_payout(bet_amount: uint64, r: uint64) -> uint64:
 _calculate_bet_payout:
-    // src/src/contract.py:212-213
+    // src/src/contract.py:275-277
+    // # override
     // @subroutine
     // def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
     proto 2 1
     byte ""
     dup
-    // src/src/contract.py:236
+    // src/src/contract.py:283-299
+    // # multipliers = arc4.StaticArray(
+    // #     arc4.UInt64(100),  # 100x
+    // #     arc4.UInt64(50),  # 50x
+    // #     arc4.UInt64(20),  # 20x
+    // #     arc4.UInt64(10),  # 10x
+    // #     arc4.UInt64(5),  # 5x
+    // #     arc4.UInt64(2),  # 2x
+    // # )
+    // # probabilities = arc4.StaticArray(
+    // #     arc4.UInt64(82_758),  # ~0.00008275862069
+    // #     arc4.UInt64(1_655_172),  # ~0.001655172414
+    // #     arc4.UInt64(8_275_862),  # ~0.008275862069
+    // #     arc4.UInt64(16_551_724),  # ~0.01655172414
+    // #     arc4.UInt64(41_379_310),  # ~0.04137931034
+    // #     arc4.UInt64(165_517_241),  # ~0.1655172414
+    // # )
     // for index in urange(6):
     int 0
 
 _calculate_bet_payout_for_header@1:
-    // src/src/contract.py:236
+    // src/src/contract.py:283-299
+    // # multipliers = arc4.StaticArray(
+    // #     arc4.UInt64(100),  # 100x
+    // #     arc4.UInt64(50),  # 50x
+    // #     arc4.UInt64(20),  # 20x
+    // #     arc4.UInt64(10),  # 10x
+    // #     arc4.UInt64(5),  # 5x
+    // #     arc4.UInt64(2),  # 2x
+    // # )
+    // # probabilities = arc4.StaticArray(
+    // #     arc4.UInt64(82_758),  # ~0.00008275862069
+    // #     arc4.UInt64(1_655_172),  # ~0.001655172414
+    // #     arc4.UInt64(8_275_862),  # ~0.008275862069
+    // #     arc4.UInt64(16_551_724),  # ~0.01655172414
+    // #     arc4.UInt64(41_379_310),  # ~0.04137931034
+    // #     arc4.UInt64(165_517_241),  # ~0.1655172414
+    // # )
     // for index in urange(6):
     frame_dig 2
     int 6
     <
     bz _calculate_bet_payout_after_for@6
-    // src/src/contract.py:237
-    // prob = probabilities[index].native
+    // src/src/contract.py:300
+    // prob = self.payout_model.probabilities[index].native
+    int 0
+    // src/src/contract.py:242-243
+    // # payout model state
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:300
+    // prob = self.payout_model.probabilities[index].native
+    app_global_get_ex
+    assert // check self.payout_model exists
+    extract 48 48 // on error: Index access is out of bounds
     frame_dig 2
     int 8
     *
     dup
     frame_bury 0
-    // src/src/contract.py:227-234
-    // probabilities = arc4.StaticArray(
-    //     arc4.UInt64(82_758),  # ~0.00008275862069
-    //     arc4.UInt64(1_655_172),  # ~0.001655172414
-    //     arc4.UInt64(8_275_862),  # ~0.008275862069
-    //     arc4.UInt64(16_551_724),  # ~0.01655172414
-    //     arc4.UInt64(41_379_310),  # ~0.04137931034
-    //     arc4.UInt64(165_517_241),  # ~0.1655172414
-    // )
-    byte 0x0000000000014346000000000019418400000000007e47960000000000fc8f2c00000000027765ee0000000009dd97b9
-    // src/src/contract.py:237
-    // prob = probabilities[index].native
-    swap
     int 8
     extract3 // on error: Index access is out of bounds
     btoi
     dup
     frame_bury 1
-    // src/src/contract.py:238
+    // src/src/contract.py:301
     // if r < prob:
     frame_dig -1
     >
     bz _calculate_bet_payout_after_if_else@4
-    // src/src/contract.py:219-226
-    // multipliers = arc4.StaticArray(
-    //     arc4.UInt64(100),  # 100x
-    //     arc4.UInt64(50),  # 50x
-    //     arc4.UInt64(20),  # 20x
-    //     arc4.UInt64(10),  # 10x
-    //     arc4.UInt64(5),  # 5x
-    //     arc4.UInt64(2),  # 2x
-    // )
-    byte 0x000000000000006400000000000000320000000000000014000000000000000a00000000000000050000000000000002
-    // src/src/contract.py:239
-    // return bet_amount * multipliers[index].native
+    // src/src/contract.py:302
+    // return bet_amount * self.payout_model.multipliers[index].native
+    int 0
+    // src/src/contract.py:242-243
+    // # payout model state
+    // self.payout_model = self._initial_payout_model()
+    byte "payout_model"
+    // src/src/contract.py:302
+    // return bet_amount * self.payout_model.multipliers[index].native
+    app_global_get_ex
+    assert // check self.payout_model exists
+    extract 0 48 // on error: Index access is out of bounds
     frame_dig 0
     int 8
     extract3 // on error: Index access is out of bounds
@@ -337,13 +396,29 @@ _calculate_bet_payout_for_header@1:
     retsub
 
 _calculate_bet_payout_after_if_else@4:
-    // src/src/contract.py:240
+    // src/src/contract.py:303
     // r -= prob
     frame_dig -1
     frame_dig 1
     -
     frame_bury -1
-    // src/src/contract.py:236
+    // src/src/contract.py:283-299
+    // # multipliers = arc4.StaticArray(
+    // #     arc4.UInt64(100),  # 100x
+    // #     arc4.UInt64(50),  # 50x
+    // #     arc4.UInt64(20),  # 20x
+    // #     arc4.UInt64(10),  # 10x
+    // #     arc4.UInt64(5),  # 5x
+    // #     arc4.UInt64(2),  # 2x
+    // # )
+    // # probabilities = arc4.StaticArray(
+    // #     arc4.UInt64(82_758),  # ~0.00008275862069
+    // #     arc4.UInt64(1_655_172),  # ~0.001655172414
+    // #     arc4.UInt64(8_275_862),  # ~0.008275862069
+    // #     arc4.UInt64(16_551_724),  # ~0.01655172414
+    // #     arc4.UInt64(41_379_310),  # ~0.04137931034
+    // #     arc4.UInt64(165_517_241),  # ~0.1655172414
+    // # )
     // for index in urange(6):
     frame_dig 2
     int 1
@@ -352,7 +427,7 @@ _calculate_bet_payout_after_if_else@4:
     b _calculate_bet_payout_for_header@1
 
 _calculate_bet_payout_after_for@6:
-    // src/src/contract.py:242
+    // src/src/contract.py:305
     // return UInt64(0)
     int 0
     frame_bury 0
@@ -502,310 +577,6 @@ grant_upgrader:
     retsub
 
 
-// opensubmarine.contracts.participation.Stakable.contract.Stakeable.set_delegate(delegate: bytes) -> void:
-set_delegate:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:81-82
-    // @arc4.abimethod
-    // def set_delegate(self, delegate: arc4.Address) -> None:
-    proto 1 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:84
-    // Txn.sender == self.owner or Txn.sender == Global.creator_address
-    txn Sender
-    int 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
-    // self.owner = Account()
-    byte "owner"
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:84
-    // Txn.sender == self.owner or Txn.sender == Global.creator_address
-    app_global_get_ex
-    assert // check self.owner exists
-    ==
-    bnz set_delegate_bool_true@2
-    txn Sender
-    global CreatorAddress
-    ==
-    bz set_delegate_bool_false@3
-
-set_delegate_bool_true@2:
-    int 1
-    b set_delegate_bool_merge@4
-
-set_delegate_bool_false@3:
-    int 0
-
-set_delegate_bool_merge@4:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:83-85
-    // assert (
-    //     Txn.sender == self.owner or Txn.sender == Global.creator_address
-    // ), "must be owner or creator"
-    assert // must be owner or creator
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:86
-    // arc4.emit(DelegateUpdated(arc4.Address(self.delegate), delegate))
-    int 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:47
-    // self.delegate = Account()
-    byte "delegate"
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:86
-    // arc4.emit(DelegateUpdated(arc4.Address(self.delegate), delegate))
-    app_global_get_ex
-    assert // check self.delegate exists
-    frame_dig -1
-    concat
-    method "DelegateUpdated(address,address)"
-    swap
-    concat
-    log
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:47
-    // self.delegate = Account()
-    byte "delegate"
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:87
-    // self.delegate = delegate.native
-    frame_dig -1
-    app_global_put
-    retsub
-
-
-// opensubmarine.contracts.participation.Stakable.contract.Stakeable.participate(vote_k: bytes, sel_k: bytes, vote_fst: bytes, vote_lst: bytes, vote_kd: bytes, sp_key: bytes) -> void:
-participate:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:89-98
-    // @arc4.abimethod
-    // def participate(
-    //     self,
-    //     vote_k: Bytes32,
-    //     sel_k: Bytes32,
-    //     vote_fst: arc4.UInt64,
-    //     vote_lst: arc4.UInt64,
-    //     vote_kd: arc4.UInt64,
-    //     sp_key: Bytes64,
-    // ) -> None:
-    proto 6 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:101
-    // Txn.sender == self.owner or Txn.sender == self.delegate
-    txn Sender
-    int 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
-    // self.owner = Account()
-    byte "owner"
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:101
-    // Txn.sender == self.owner or Txn.sender == self.delegate
-    app_global_get_ex
-    assert // check self.owner exists
-    ==
-    bnz participate_bool_true@2
-    txn Sender
-    int 0
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:47
-    // self.delegate = Account()
-    byte "delegate"
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:101
-    // Txn.sender == self.owner or Txn.sender == self.delegate
-    app_global_get_ex
-    assert // check self.delegate exists
-    ==
-    bz participate_bool_false@3
-
-participate_bool_true@2:
-    int 1
-    b participate_bool_merge@4
-
-participate_bool_false@3:
-    int 0
-
-participate_bool_merge@4:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:99-102
-    // ###########################################
-    // assert (
-    //     Txn.sender == self.owner or Txn.sender == self.delegate
-    // ), "must be owner or delegate"
-    assert // must be owner or delegate
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:103-104
-    // ###########################################
-    // key_reg_fee = Global.min_txn_fee
-    global MinTxnFee
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:105-106
-    // # require payment of min fee to prevent draining
-    // assert require_payment(Txn.sender) == key_reg_fee, "payment amout accurate"
-    txn Sender
-    callsub require_payment
-    dig 1
-    ==
-    assert // payment amout accurate
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:110
-    // arc4.Address(Txn.sender),
-    txn Sender
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:112
-    // address=arc4.Address(Txn.sender),
-    dup
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:111-119
-    // PartKeyInfo(
-    //     address=arc4.Address(Txn.sender),
-    //     vote_key=vote_k,
-    //     selection_key=sel_k,
-    //     vote_first=vote_fst,
-    //     vote_last=vote_lst,
-    //     vote_key_dilution=vote_kd,
-    //     state_proof_key=sp_key,
-    // ),
-    frame_dig -6
-    concat
-    frame_dig -5
-    concat
-    frame_dig -4
-    concat
-    frame_dig -3
-    concat
-    frame_dig -2
-    concat
-    frame_dig -1
-    concat
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:109-120
-    // Participated(
-    //     arc4.Address(Txn.sender),
-    //     PartKeyInfo(
-    //         address=arc4.Address(Txn.sender),
-    //         vote_key=vote_k,
-    //         selection_key=sel_k,
-    //         vote_first=vote_fst,
-    //         vote_last=vote_lst,
-    //         vote_key_dilution=vote_kd,
-    //         state_proof_key=sp_key,
-    //     ),
-    // )
-    concat
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:107-121
-    // ###########################################
-    // arc4.emit(
-    //     Participated(
-    //         arc4.Address(Txn.sender),
-    //         PartKeyInfo(
-    //             address=arc4.Address(Txn.sender),
-    //             vote_key=vote_k,
-    //             selection_key=sel_k,
-    //             vote_first=vote_fst,
-    //             vote_last=vote_lst,
-    //             vote_key_dilution=vote_kd,
-    //             state_proof_key=sp_key,
-    //         ),
-    //     )
-    // )
-    method "Participated(address,(address,byte[32],byte[32],uint64,uint64,uint64,byte[64]))"
-    swap
-    concat
-    log
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:122-130
-    // itxn.KeyRegistration(
-    //     vote_key=vote_k.bytes,
-    //     selection_key=sel_k.bytes,
-    //     vote_first=vote_fst.native,
-    //     vote_last=vote_lst.native,
-    //     vote_key_dilution=vote_kd.native,
-    //     state_proof_key=sp_key.bytes,
-    //     fee=key_reg_fee,
-    // ).submit()
-    itxn_begin
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:125
-    // vote_first=vote_fst.native,
-    frame_dig -4
-    btoi
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:126
-    // vote_last=vote_lst.native,
-    frame_dig -3
-    btoi
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:127
-    // vote_key_dilution=vote_kd.native,
-    frame_dig -2
-    btoi
-    frame_dig -1
-    itxn_field StateProofPK
-    itxn_field VoteKeyDilution
-    itxn_field VoteLast
-    itxn_field VoteFirst
-    frame_dig -5
-    itxn_field SelectionPK
-    frame_dig -6
-    itxn_field VotePK
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:122
-    // itxn.KeyRegistration(
-    int keyreg
-    itxn_field TypeEnum
-    itxn_field Fee
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:122-130
-    // itxn.KeyRegistration(
-    //     vote_key=vote_k.bytes,
-    //     selection_key=sel_k.bytes,
-    //     vote_first=vote_fst.native,
-    //     vote_last=vote_lst.native,
-    //     vote_key_dilution=vote_kd.native,
-    //     state_proof_key=sp_key.bytes,
-    //     fee=key_reg_fee,
-    // ).submit()
-    itxn_submit
-    retsub
-
-
-// opensubmarine.utils.algorand.require_payment(who: bytes) -> uint64:
-require_payment:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:15-23
-    // ##############################################
-    // # function: require_payment (internal)
-    // # arguments: None
-    // # purpose: check payment
-    // # pre-conditions: None
-    // # post-conditions: None
-    // ##############################################
-    // @subroutine
-    // def require_payment(who: Account) -> UInt64:
-    proto 1 1
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:24
-    // ref_group_index = Txn.group_index
-    txn GroupIndex
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:25
-    // assert ref_group_index > 0, "group index greater than zero"
-    dup
-    assert // group index greater than zero
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:26
-    // payment_group_index = ref_group_index - 1
-    int 1
-    -
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:28
-    // gtxn.PaymentTransaction(payment_group_index).sender == who
-    dup
-    gtxns TypeEnum
-    int pay
-    ==
-    assert // transaction type is pay
-    dup
-    gtxns Sender
-    frame_dig -1
-    ==
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:27-29
-    // assert (
-    //     gtxn.PaymentTransaction(payment_group_index).sender == who
-    // ), "payment sender accurate"
-    assert // payment sender accurate
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:31
-    // gtxn.PaymentTransaction(payment_group_index).receiver
-    dup
-    gtxns Receiver
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:32
-    // == Global.current_application_address
-    global CurrentApplicationAddress
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:31-32
-    // gtxn.PaymentTransaction(payment_group_index).receiver
-    // == Global.current_application_address
-    ==
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:30-33
-    // assert (
-    //     gtxn.PaymentTransaction(payment_group_index).receiver
-    //     == Global.current_application_address
-    // ), "payment receiver accurate"
-    assert // payment receiver accurate
-    // usr/local/lib/python3.12/site-packages/opensubmarine/utils/algorand.py:34
-    // return gtxn.PaymentTransaction(payment_group_index).amount
-    gtxns Amount
-    retsub
-
-
 // opensubmarine.contracts.update.Upgradeable.contract.Upgradeable.on_update() -> void:
 on_update:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:92-93
@@ -880,36 +651,21 @@ on_delete:
 
 // contract.SlotMachinePayoutModel.__init__() -> void:
 __init__:
-    // src/src/contract.py:188
+    // src/src/contract.py:232
     // def __init__(self) -> None:
     proto 0 0
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
     // self.owner = Account()
     byte "owner"
-    // src/src/contract.py:189-190
+    // src/src/contract.py:233-234
     // # ownable state
     // self.owner = Global.creator_address
     global CreatorAddress
     app_global_put
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:47
-    // self.delegate = Account()
-    byte "delegate"
-    // src/src/contract.py:191-192
-    // # stakeable state
-    // self.delegate = Account()  # zero address
-    global ZeroAddress
-    app_global_put
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:48
-    // self.stakeable = bool(1)
-    byte "stakeable"
-    // src/src/contract.py:193
-    // self.stakeable = bool(1)  # 1 (Default unlocked)
-    int 1
-    app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:34
     // self.upgrader = Account()
     byte "upgrader"
-    // src/src/contract.py:194-195
+    // src/src/contract.py:235-236
     // # upgradable state
     // self.upgrader = Global.creator_address
     global CreatorAddress
@@ -917,36 +673,66 @@ __init__:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:31
     // self.contract_version = UInt64()
     byte "contract_version"
-    // src/src/contract.py:196
+    // src/src/contract.py:237
     // self.contract_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:32
     // self.deployment_version = UInt64()
     byte "deployment_version"
-    // src/src/contract.py:197
+    // src/src/contract.py:238
     // self.deployment_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:33
     // self.updatable = bool(1)
     byte "updatable"
-    // src/src/contract.py:198
+    // src/src/contract.py:239
     // self.updatable = bool(1)
     int 1
     app_global_put
     // src/src/contract.py:43
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:199-200
+    // src/src/contract.py:240-241
     // # deleteable state
     // self.deletable = bool(1)
     int 1
     app_global_put
-    // src/src/contract.py:201-202
+    // src/src/contract.py:242-243
     // # payout model state
-    // self.max_payout_multiplier = UInt64(100)
-    byte "max_payout_multiplier"
-    int 100
+    // self.payout_model = self._initial_payout_model()
+    callsub _initial_payout_model
+    byte "payout_model"
+    swap
     app_global_put
+    retsub
+
+
+// contract.SlotMachinePayoutModelInterface._initial_payout_model() -> bytes:
+_initial_payout_model:
+    // src/src/contract.py:202-203
+    // @subroutine
+    // def _initial_payout_model(self) -> PayoutModel:
+    proto 0 1
+    // src/src/contract.py:207-224
+    // return PayoutModel(
+    //     multipliers=arc4.StaticArray(
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //     ),
+    //     probabilities=arc4.StaticArray(
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //         arc4.UInt64(0),
+    //     ),
+    // )
+    byte 0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
     retsub

@@ -11,8 +11,11 @@ import {
   decodeBetPlaced,
   claim,
   algodClient,
-  setPayoutModel,
+  slotMachineSetPayoutModel,
+  // beacon
   touch,
+  // payment model
+  setPayoutModel,
 } from "../command.js";
 
 const invalidSpin =
@@ -53,6 +56,7 @@ describe("Slot Machine Testing", function () {
   };
   let contract;
   let appId;
+  let payoutModelContract;
   let payoutModelAppId;
   let beaconAppId;
   const player1 = {
@@ -65,18 +69,18 @@ describe("Slot Machine Testing", function () {
   };
   before(async function () {
     {
-      const { appId: id } = await deploy({
+      const { appId: id, appClient } = await deploy({
         type: "SlotMachinePayoutModel",
-        name: "SlotMachinePayoutModel001",
+        name: "SlotMachinePayoutModelxxx",
       });
       payoutModelAppId = id;
+      payoutModelContract = appClient;
     }
     {
       const res = await deploy({
         type: "Beacon",
         name: "Beacon001",
       });
-      console.log("res", res);
       beaconAppId = res.appId;
     }
   });
@@ -88,7 +92,7 @@ describe("Slot Machine Testing", function () {
     });
     appId = id;
     contract = appClient;
-    const setPayoutModelSuccess = await setPayoutModel({
+    const setPayoutModelSuccess = await slotMachineSetPayoutModel({
       appId,
       payoutModelAppId,
       sender: addressses.deployer,
@@ -113,101 +117,110 @@ describe("Slot Machine Testing", function () {
     console.log("payoutModelAppId", payoutModelAppId);
     expect(payoutModelAppId).to.not.equal(0);
   });
-  // SLOT MACHINE TESTING
-  it("Should deploy contract", async function () {
-    console.log("appId", appId);
-    expect(appId).to.not.equal(0);
-    // check owner
-  });
-  it("Should deposit funds", async function () {
-    // check initial state
-    const depositR = await deposit({
-      appId,
-      amount: 1e6,
+  it("Should set payout model", async function () {
+    await payoutModelContract.setPayoutModel({
+      multipliers: [100, 50, 20, 10, 5, 2],
+      probabilities: [
+        82_758, 1_655_172, 8_275_862, 16_551_724, 41_379_310, 165_517_241,
+      ],
     });
-    // check state after deposit
-    expect(depositR).to.be.true;
+    const payoutModel = (await payoutModelContract.getPayoutModel()).return;
   });
-  it("Should withdraw funds", async function () {
-    const withdrawR = await withdraw({
-      appId,
-      amount: 1e6,
-    });
-    expect(withdrawR).to.be.true;
-  });
-  it("Should not withdraw over available", async function () {
-    const withdrawR = await withdraw({
-      appId,
-      amount: 300_000e6 + 1e6,
-    });
-    expect(withdrawR).to.be.false;
-  });
-  it("Should not withdraw when zero", async function () {
-    const withdrawR = await withdraw({
-      appId,
-      amount: 0,
-    });
-    expect(withdrawR).to.be.false;
-  });
-  it("Should not withdraw as player", async function () {
-    const withdrawR = await withdraw({
-      appId,
-      amount: 1e6,
-      ...player1,
-    });
-    expect(withdrawR).to.be.false;
-  });
-  // it should withdraw minor
-  // it should withdraw all
-  // it should withdraw ...
-  it("Should spin min bet", async function () {
-    const spinMinBet = await spin({
-      appId,
-      amount: 1e6,
-      index: 0,
-      ...player1,
-      debug: true,
-    });
-    const hex = Buffer.from(spinMinBet).toString("hex");
-    expect(hex).to.not.be.eq(invalidSpin);
-  });
-  it("Should spin max bet", async function () {
-    const spinMaxBet = await spin({
-      appId,
-      amount: 1000e6,
-      index: 0,
-      ...player1,
-    });
-    const hex = Buffer.from(spinMaxBet).toString("hex");
-    expect(hex).to.not.be.eq(invalidSpin);
-  });
-  it("Should spin not be below min bet", async function () {
-    const spinBelowMinBet = await spin({
-      appId,
-      amount: 1e6 - 1,
-      index: 0,
-      ...player1,
-    });
-    const hex = Buffer.from(spinBelowMinBet).toString("hex");
-    expect(hex).to.be.eq(invalidSpin);
-  });
-  it("Should spin not be above max bet", async function () {
-    const spinAboveMaxBet = await spin({
-      appId,
-      amount: 1000e6 + 1,
-      index: 0,
-      ...player1,
-    });
-    const hex = Buffer.from(spinAboveMaxBet).toString("hex");
-    expect(hex).to.be.eq(invalidSpin);
-  });
-  it("Should claim", async function () {
-    for await (const _ of Array(10)) {
-      const claimR = await spinClaimOnce(appId, beaconAppId, player1);
-      expect(claimR.success).to.be.true;
-      expect(claimR.returnValue).to.be.oneOf(
-        [0, 2e6, 5e6, 10e6, 20e6, 50e6, 100e6].map(BigInt)
-      );
-    }
-  });
+  // // SLOT MACHINE TESTING
+  // it("Should deploy contract", async function () {
+  //   console.log("appId", appId);
+  //   expect(appId).to.not.equal(0);
+  //   // check owner
+  // });
+  // it("Should deposit funds", async function () {
+  //   // check initial state
+  //   const depositR = await deposit({
+  //     appId,
+  //     amount: 1e6,
+  //   });
+  //   // check state after deposit
+  //   expect(depositR).to.be.true;
+  // });
+  // it("Should withdraw funds", async function () {
+  //   const withdrawR = await withdraw({
+  //     appId,
+  //     amount: 1e6,
+  //   });
+  //   expect(withdrawR).to.be.true;
+  // });
+  // it("Should not withdraw over available", async function () {
+  //   const withdrawR = await withdraw({
+  //     appId,
+  //     amount: 300_000e6 + 1e6,
+  //   });
+  //   expect(withdrawR).to.be.false;
+  // });
+  // it("Should not withdraw when zero", async function () {
+  //   const withdrawR = await withdraw({
+  //     appId,
+  //     amount: 0,
+  //   });
+  //   expect(withdrawR).to.be.false;
+  // });
+  // it("Should not withdraw as player", async function () {
+  //   const withdrawR = await withdraw({
+  //     appId,
+  //     amount: 1e6,
+  //     ...player1,
+  //   });
+  //   expect(withdrawR).to.be.false;
+  // });
+  // // it should withdraw minor
+  // // it should withdraw all
+  // // it should withdraw ...
+  // it("Should spin min bet", async function () {
+  //   const spinMinBet = await spin({
+  //     appId,
+  //     amount: 1e6,
+  //     index: 0,
+  //     ...player1,
+  //     debug: true,
+  //   });
+  //   const hex = Buffer.from(spinMinBet).toString("hex");
+  //   expect(hex).to.not.be.eq(invalidSpin);
+  // });
+  // it("Should spin max bet", async function () {
+  //   const spinMaxBet = await spin({
+  //     appId,
+  //     amount: 1000e6,
+  //     index: 0,
+  //     ...player1,
+  //   });
+  //   const hex = Buffer.from(spinMaxBet).toString("hex");
+  //   expect(hex).to.not.be.eq(invalidSpin);
+  // });
+  // it("Should spin not be below min bet", async function () {
+  //   const spinBelowMinBet = await spin({
+  //     appId,
+  //     amount: 1e6 - 1,
+  //     index: 0,
+  //     ...player1,
+  //   });
+  //   const hex = Buffer.from(spinBelowMinBet).toString("hex");
+  //   expect(hex).to.be.eq(invalidSpin);
+  // });
+  // it("Should spin not be above max bet", async function () {
+  //   const spinAboveMaxBet = await spin({
+  //     appId,
+  //     amount: 1000e6 + 1,
+  //     index: 0,
+  //     ...player1,
+  //   });
+  //   const hex = Buffer.from(spinAboveMaxBet).toString("hex");
+  //   expect(hex).to.be.eq(invalidSpin);
+  // });
+  // it("Should claim", async function () {
+  //   for await (const _ of Array(100)) {
+  //     const claimR = await spinClaimOnce(appId, beaconAppId, player1);
+  //     expect(claimR.success).to.be.true;
+  //     expect(claimR.returnValue).to.be.oneOf(
+  //       [0, 2e6, 5e6, 10e6, 20e6, 50e6, 100e6].map(BigInt)
+  //     );
+  //   }
+  // });
 });

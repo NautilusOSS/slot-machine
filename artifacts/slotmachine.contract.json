@@ -54,6 +54,33 @@
       "desc": "Set the maximum bet amount"
     },
     {
+      "name": "burn_upgreadable_fuse",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Burn the upgradeable fuse"
+    },
+    {
+      "name": "burn_stakeable_fuse",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Burn the stakeable fuse"
+    },
+    {
+      "name": "burn_deletable_fuse",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Burn the deletable fuse"
+    },
+    {
       "name": "deposit",
       "args": [],
       "readonly": false,
@@ -78,6 +105,33 @@
       "desc": "Withdraw funds from the contract\nOnly callable by contract owner"
     },
     {
+      "name": "get_balance_available",
+      "args": [],
+      "readonly": true,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the available balance"
+    },
+    {
+      "name": "get_balance_locked",
+      "args": [],
+      "readonly": true,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the locked balance"
+    },
+    {
+      "name": "get_balance_total",
+      "args": [],
+      "readonly": true,
+      "returns": {
+        "type": "uint64"
+      },
+      "desc": "Get the total balance"
+    },
+    {
       "name": "get_bet_key",
       "args": [
         {
@@ -97,7 +151,7 @@
           "name": "index"
         }
       ],
-      "readonly": false,
+      "readonly": true,
       "returns": {
         "type": "byte[56]"
       }
@@ -183,6 +237,52 @@
         {
           "type": "address",
           "name": "upgrader"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "set_delegate",
+      "args": [
+        {
+          "type": "address",
+          "name": "delegate"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "participate",
+      "args": [
+        {
+          "type": "byte[32]",
+          "name": "vote_k"
+        },
+        {
+          "type": "byte[32]",
+          "name": "sel_k"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_fst"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_lst"
+        },
+        {
+          "type": "uint64",
+          "name": "vote_kd"
+        },
+        {
+          "type": "byte[64]",
+          "name": "sp_key"
         }
       ],
       "readonly": false,
