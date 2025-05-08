@@ -6,6 +6,7 @@
   "scripts": {
     "test": "mocha",
     "test-payoutmodel": "mocha --grep 'Payout Model'",
+    "test-slotmachine": "mocha --grep 'Slot Machine'",
     "start": "node index.js"
   },
   "author": "",

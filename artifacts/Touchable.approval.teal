@@ -1,7 +1,7 @@
 #pragma version 10
 
 contract.Touchable.approval_program:
-    // src/src/contract.py:80
+    // src/src/contract.py:81
     // class Touchable(TouchableInterface):
     txn NumAppArgs
     bz main_bare_routing@5
@@ -11,7 +11,7 @@ contract.Touchable.approval_program:
     err // reject transaction
 
 main_touch_route@2:
-    // src/src/contract.py:72
+    // src/src/contract.py:73
     // @arc4.abimethod
     txn OnCompletion
     !
@@ -22,7 +22,7 @@ main_touch_route@2:
     return
 
 main_bare_routing@5:
-    // src/src/contract.py:80
+    // src/src/contract.py:81
     // class Touchable(TouchableInterface):
     txn OnCompletion
     !

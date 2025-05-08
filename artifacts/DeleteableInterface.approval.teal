@@ -6,7 +6,7 @@ contract.DeleteableInterface.approval_program:
     callsub __init__
 
 main_entrypoint@2:
-    // src/src/contract.py:37
+    // src/src/contract.py:38
     // class DeleteableInterface(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@7
@@ -16,7 +16,7 @@ main_entrypoint@2:
     err // reject transaction
 
 main_on_delete_route@4:
-    // src/src/contract.py:45
+    // src/src/contract.py:46
     // @arc4.abimethod
     txn OnCompletion
     !
@@ -27,7 +27,7 @@ main_on_delete_route@4:
     return
 
 main_bare_routing@7:
-    // src/src/contract.py:37
+    // src/src/contract.py:38
     // class DeleteableInterface(ARC4Contract):
     txn OnCompletion
     !
@@ -41,10 +41,10 @@ main_bare_routing@7:
 
 // contract.DeleteableInterface.__init__() -> void:
 __init__:
-    // src/src/contract.py:42
+    // src/src/contract.py:43
     // def __init__(self) -> None:  # pragma: no cover
     proto 0 0
-    // src/src/contract.py:43
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
     int 1

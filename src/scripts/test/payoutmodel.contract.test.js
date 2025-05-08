@@ -43,6 +43,7 @@ describe("Payout Model Testing", function () {
       probabilities: expectedProbabilities,
     });
     const payoutModel = await contract.getPayoutModel();
+    console.log("payoutModel", payoutModel.return);
     for (let i = 0; i < 6; i++) {
       expect(payoutModel.return.multipliers[i]).to.equal(
         BigInt(expectedMultipliers[i])

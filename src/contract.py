@@ -15,6 +15,7 @@ from algopy import (
     ARC4Contract,
     Application,
     BigUInt,
+    String
 )
 from opensubmarine import Upgradeable, Stakeable, ARC200Token, arc200_Transfer
 from opensubmarine.utils.algorand import require_payment, close_offline_on_delete
@@ -154,6 +155,8 @@ ROUND_FUTURE_DELTA = 1  # 1 round in the future
 MAX_CLAIM_ROUND_DELTA = 1000  # 1000 rounds in the future
 MIN_BET_AMOUNT = 1000000  # 1 VOI
 MAX_BET_AMOUNT = 1000000000  # 1000 VOI
+MIN_BANK_AMOUNT = 350000000000  # 350,000 VOI
+
 
 class PayoutModel(arc4.Struct):
     multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]
@@ -280,22 +283,6 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
         Random number r is in [0, 1_000_000_000). Uses if/then/else-style logic
         directly subtracting each probability from r until a match is found.
         """
-        # multipliers = arc4.StaticArray(
-        #     arc4.UInt64(100),  # 100x
-        #     arc4.UInt64(50),  # 50x
-        #     arc4.UInt64(20),  # 20x
-        #     arc4.UInt64(10),  # 10x
-        #     arc4.UInt64(5),  # 5x
-        #     arc4.UInt64(2),  # 2x
-        # )
-        # probabilities = arc4.StaticArray(
-        #     arc4.UInt64(82_758),  # ~0.00008275862069
-        #     arc4.UInt64(1_655_172),  # ~0.001655172414
-        #     arc4.UInt64(8_275_862),  # ~0.008275862069
-        #     arc4.UInt64(16_551_724),  # ~0.01655172414
-        #     arc4.UInt64(41_379_310),  # ~0.04137931034
-        #     arc4.UInt64(165_517_241),  # ~0.1655172414
-        # )
         for index in urange(6):
             prob = self.payout_model.probabilities[index].native
             if r < prob:
@@ -393,6 +380,7 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         self.balance_locked = UInt64()
         self.min_bet_amount = UInt64(MIN_BET_AMOUNT)  # 1 VOI
         self.max_bet_amount = UInt64(MAX_BET_AMOUNT)  # 1000 VOI
+        self.min_bank_amount = UInt64(MIN_BANK_AMOUNT)  # 350,000 VOI
         self.payout_model = UInt64()  # app id of payout model
         self.bet = BoxMap(Bytes, Bet, key_prefix="")
 
@@ -417,6 +405,15 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         self.deployment_version = UInt64()
 
     # owner methods
+
+    @arc4.abimethod
+    def set_min_bank_amount(self, min_bank_amount: arc4.UInt64) -> None:
+        """
+        Set the minimum bank amount
+        """
+        self.only_owner()
+        assert min_bank_amount.native >= MIN_BANK_AMOUNT, "min bank amount must be greater than 350,000 VOI"
+        self.min_bank_amount = min_bank_amount.native
 
     @arc4.abimethod
     def set_payout_model(self, app_id: arc4.UInt64) -> None:
@@ -617,12 +614,16 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         assert (
             extra_payment <= MAX_EXTRA_PAYMENT
         ), "extra payment must be less than max extra payment"
+        # lock spin if balance total is less than min bank amount
+        assert self.balance_total >= self.min_bank_amount, "balance total must be greater than min bank amount"
         # Update balance tracking
         #   Add bet amount to total balance
         self.balance_total += bet_amount
         self.balance_available += bet_amount  # Add bet amount to available first
         max_possible_payout = bet_amount * UInt64(MAX_PAYOUT_MULTIPLIER)
         self.balance_locked += max_possible_payout
+        # prevent underflow, impossible because it would err with result would be negative but good to have
+        assert self.balance_available >= max_possible_payout, "balance available must be greater than max possible payout"
         self.balance_available -= max_possible_payout
         # Create bet
         round = Global.round
@@ -792,7 +793,7 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
 #         """
 #         assert amount > 0, "amount must be greater than 0"
 #         payment = require_payment(Txn.sender)
-#         required_payment = amount + 28500 if Txn.sender in self.balances else amount
+#         required_payment = amount if Txn.sender in self.balances else amount + 28500
 #         assert payment >= required_payment, "payment insufficient"
 #         bigAmount = BigUInt(amount)
 #         return self._mint(bigAmount)

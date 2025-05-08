@@ -12,6 +12,20 @@
       "desc": "Called after upgrade"
     },
     {
+      "name": "set_min_bank_amount",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "min_bank_amount"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Set the minimum bank amount"
+    },
+    {
       "name": "set_payout_model",
       "args": [
         {
