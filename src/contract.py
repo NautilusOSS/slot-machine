@@ -944,7 +944,7 @@ class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
         total_assets = BigUInt(self._get_yield_bearing_source_balance())
 
         if self.totalSupply == 0:
-            shares = amount * SCALING_FACTOR // total_assets
+            shares = amount
         else:
             shares = (amount * self.totalSupply) // total_assets
 
