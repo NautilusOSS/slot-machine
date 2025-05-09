@@ -6,7 +6,7 @@ contract.Beacon.approval_program:
     callsub __init__
 
 main_entrypoint@2:
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn NumAppArgs
     bz main_bare_routing@11
@@ -20,7 +20,7 @@ main_entrypoint@2:
     err // reject transaction
 
 main_touch_route@4:
-    // src/src/contract.py:73
+    // src/src/contract.py:74
     // @arc4.abimethod
     txn OnCompletion
     !
@@ -38,7 +38,7 @@ main_set_version_route@5:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
@@ -56,7 +56,7 @@ main_approve_update_route@6:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
@@ -73,7 +73,7 @@ main_grant_upgrader_route@7:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
@@ -94,14 +94,14 @@ main_transfer_route@8:
     return
 
 main_bare_routing@11:
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn OnCompletion
     switch main_create@12 main_reject_bare_on_completion@15 main_reject_bare_on_completion@15 main_reject_bare_on_completion@15 main_on_update@13 main_on_delete@14
     err // reject transaction
 
 main_create@12:
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn ApplicationID
     !
@@ -122,11 +122,11 @@ main_on_update@13:
     return
 
 main_on_delete@14:
-    // src/src/contract.py:58
+    // src/src/contract.py:59
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:58-59
+    // src/src/contract.py:59-60
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     callsub on_delete
@@ -134,7 +134,7 @@ main_on_delete@14:
     return
 
 main_reject_bare_on_completion@15:
-    // src/src/contract.py:95
+    // src/src/contract.py:96
     // class Beacon(Touchable, Upgradeable, Deleteable):
     err // reject transaction
 
@@ -325,11 +325,11 @@ on_update:
 
 // contract.Deleteable.on_delete() -> void:
 on_delete:
-    // src/src/contract.py:58-59
+    // src/src/contract.py:59-60
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     proto 0 0
-    // src/src/contract.py:60-63
+    // src/src/contract.py:61-64
     // ##########################################
     // # WARNING: This app can be deleted by the creator (Development)
     // ##########################################
@@ -338,13 +338,13 @@ on_delete:
     global CreatorAddress
     ==
     assert // must be creator
-    // src/src/contract.py:64
+    // src/src/contract.py:65
     // assert self.deletable == UInt64(1), "not approved"
     int 0
-    // src/src/contract.py:44
+    // src/src/contract.py:45
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:64
+    // src/src/contract.py:65
     // assert self.deletable == UInt64(1), "not approved"
     app_global_get_ex
     assert // check self.deletable exists
@@ -356,13 +356,13 @@ on_delete:
 
 // contract.Beacon.__init__() -> void:
 __init__:
-    // src/src/contract.py:100
+    // src/src/contract.py:101
     // def __init__(self) -> None:
     proto 0 0
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
     // self.owner = Account()
     byte "owner"
-    // src/src/contract.py:101-102
+    // src/src/contract.py:102-103
     // # ownable state
     // self.owner = Global.creator_address
     global CreatorAddress
@@ -370,7 +370,7 @@ __init__:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:34
     // self.upgrader = Account()
     byte "upgrader"
-    // src/src/contract.py:103-104
+    // src/src/contract.py:104-105
     // # upgradable state
     // self.upgrader = Global.creator_address
     global CreatorAddress
@@ -378,28 +378,28 @@ __init__:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:31
     // self.contract_version = UInt64()
     byte "contract_version"
-    // src/src/contract.py:105
+    // src/src/contract.py:106
     // self.contract_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:32
     // self.deployment_version = UInt64()
     byte "deployment_version"
-    // src/src/contract.py:106
+    // src/src/contract.py:107
     // self.deployment_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:33
     // self.updatable = bool(1)
     byte "updatable"
-    // src/src/contract.py:107
+    // src/src/contract.py:108
     // self.updatable = bool(1)
     int 1
     app_global_put
-    // src/src/contract.py:44
+    // src/src/contract.py:45
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:108-109
+    // src/src/contract.py:109-110
     // # deleteable state
     // self.deletable = bool(1)
     int 1

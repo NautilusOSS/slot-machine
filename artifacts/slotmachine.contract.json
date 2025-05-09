@@ -95,6 +95,29 @@
       "desc": "Burn the deletable fuse"
     },
     {
+      "name": "owner_deposit",
+      "args": [
+        {
+          "type": "uint64",
+          "name": "amount"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Deposit funds into the contract"
+    },
+    {
+      "name": "get_owner",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "address"
+      },
+      "desc": "Get the owner of the contract"
+    },
+    {
       "name": "deposit",
       "args": [],
       "readonly": false,

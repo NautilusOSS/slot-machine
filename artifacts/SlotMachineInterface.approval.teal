@@ -1,29 +1,32 @@
 #pragma version 10
 
 contract.SlotMachineInterface.approval_program:
-    // src/src/contract.py:295
+    // src/src/contract.py:309
     // class SlotMachineInterface(ARC4Contract):
     txn NumAppArgs
-    bz main_bare_routing@6
+    bz main_bare_routing@9
     method "spin(uint64,uint64)byte[56]"
     method "claim(byte[56])uint64"
+    method "get_balance_available()uint64"
+    method "get_balance_locked()uint64"
+    method "get_balance_total()uint64"
     txna ApplicationArgs 0
-    match main_spin_route@2 main_claim_route@3
+    match main_spin_route@2 main_claim_route@3 main_get_balance_available_route@4 main_get_balance_locked_route@5 main_get_balance_total_route@6
     err // reject transaction
 
 main_spin_route@2:
-    // src/src/contract.py:300
+    // src/src/contract.py:314
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:295
+    // src/src/contract.py:309
     // class SlotMachineInterface(ARC4Contract):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:300
+    // src/src/contract.py:314
     // @arc4.abimethod
     callsub spin
     byte 0x151f7c75
@@ -34,17 +37,17 @@ main_spin_route@2:
     return
 
 main_claim_route@3:
-    // src/src/contract.py:332
+    // src/src/contract.py:346
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:295
+    // src/src/contract.py:309
     // class SlotMachineInterface(ARC4Contract):
     txna ApplicationArgs 1
-    // src/src/contract.py:332
+    // src/src/contract.py:346
     // @arc4.abimethod
     callsub claim
     byte 0x151f7c75
@@ -54,8 +57,56 @@ main_claim_route@3:
     int 1
     return
 
-main_bare_routing@6:
-    // src/src/contract.py:295
+main_get_balance_available_route@4:
+    // src/src/contract.py:372
+    // @arc4.abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub get_balance_available
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_get_balance_locked_route@5:
+    // src/src/contract.py:379
+    // @arc4.abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub get_balance_locked
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_get_balance_total_route@6:
+    // src/src/contract.py:386
+    // @arc4.abimethod(readonly=True)
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub get_balance_total
+    byte 0x151f7c75
+    swap
+    concat
+    log
+    int 1
+    return
+
+main_bare_routing@9:
+    // src/src/contract.py:309
     // class SlotMachineInterface(ARC4Contract):
     txn OnCompletion
     !
@@ -69,11 +120,11 @@ main_bare_routing@6:
 
 // contract.SlotMachineInterface.spin(bet_amount: bytes, index: bytes) -> bytes:
 spin:
-    // src/src/contract.py:300-301
+    // src/src/contract.py:314-315
     // @arc4.abimethod
     // def spin(self, bet_amount: arc4.UInt64, index: arc4.UInt64) -> Bytes56:
     proto 2 1
-    // src/src/contract.py:313
+    // src/src/contract.py:327
     // return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
     frame_dig -2
     btoi
@@ -85,11 +136,11 @@ spin:
 
 // contract.SlotMachineInterface._spin(bet_amount: uint64, index: uint64) -> bytes:
 _spin:
-    // src/src/contract.py:315-316
+    // src/src/contract.py:329-330
     // @subroutine
     // def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
     proto 2 1
-    // src/src/contract.py:328-330
+    // src/src/contract.py:342-344
     // return Bytes.from_base64(
     //     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
     // )
@@ -99,11 +150,11 @@ _spin:
 
 // contract.SlotMachineInterface.claim(bet_key: bytes) -> bytes:
 claim:
-    // src/src/contract.py:332-333
+    // src/src/contract.py:346-347
     // @arc4.abimethod
     // def claim(self, bet_key: Bytes56) -> arc4.UInt64:
     proto 1 1
-    // src/src/contract.py:343
+    // src/src/contract.py:357
     // return arc4.UInt64(self._claim(bet_key.bytes))
     frame_dig -1
     callsub _claim
@@ -113,11 +164,47 @@ claim:
 
 // contract.SlotMachineInterface._claim(bet_key: bytes) -> uint64:
 _claim:
-    // src/src/contract.py:345-346
+    // src/src/contract.py:359-360
     // @subroutine
     // def _claim(self, bet_key: Bytes) -> UInt64:
     proto 1 1
-    // src/src/contract.py:356
+    // src/src/contract.py:370
     // return UInt64(0)
     int 0
+    retsub
+
+
+// contract.SlotMachineInterface.get_balance_available() -> bytes:
+get_balance_available:
+    // src/src/contract.py:372-373
+    // @arc4.abimethod(readonly=True)
+    // def get_balance_available(self) -> arc4.UInt64:
+    proto 0 1
+    // src/src/contract.py:377
+    // return arc4.UInt64(0)
+    byte 0x0000000000000000
+    retsub
+
+
+// contract.SlotMachineInterface.get_balance_locked() -> bytes:
+get_balance_locked:
+    // src/src/contract.py:379-380
+    // @arc4.abimethod(readonly=True)
+    // def get_balance_locked(self) -> arc4.UInt64:
+    proto 0 1
+    // src/src/contract.py:384
+    // return arc4.UInt64(0)
+    byte 0x0000000000000000
+    retsub
+
+
+// contract.SlotMachineInterface.get_balance_total() -> bytes:
+get_balance_total:
+    // src/src/contract.py:386-387
+    // @arc4.abimethod(readonly=True)
+    // def get_balance_total(self) -> arc4.UInt64:
+    proto 0 1
+    // src/src/contract.py:391
+    // return arc4.UInt64(0)
+    byte 0x0000000000000000
     retsub

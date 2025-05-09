@@ -1,7 +1,7 @@
 #pragma version 10
 
 contract.SlotMachinePayoutModelInterface.approval_program:
-    // src/src/contract.py:170
+    // src/src/contract.py:173
     // class SlotMachinePayoutModelInterface(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@7
@@ -13,7 +13,7 @@ contract.SlotMachinePayoutModelInterface.approval_program:
     err // reject transaction
 
 main_get_payout_model_route@2:
-    // src/src/contract.py:175
+    // src/src/contract.py:178
     // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
@@ -29,7 +29,7 @@ main_get_payout_model_route@2:
     return
 
 main_set_payout_model_route@3:
-    // src/src/contract.py:182
+    // src/src/contract.py:185
     // @arc4.abimethod
     txn OnCompletion
     !
@@ -40,18 +40,18 @@ main_set_payout_model_route@3:
     return
 
 main_get_payout_route@4:
-    // src/src/contract.py:189
+    // src/src/contract.py:196
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:170
+    // src/src/contract.py:173
     // class SlotMachinePayoutModelInterface(ARC4Contract):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:189
+    // src/src/contract.py:196
     // @arc4.abimethod
     callsub get_payout
     byte 0x151f7c75
@@ -62,7 +62,7 @@ main_get_payout_route@4:
     return
 
 main_bare_routing@7:
-    // src/src/contract.py:170
+    // src/src/contract.py:173
     // class SlotMachinePayoutModelInterface(ARC4Contract):
     txn OnCompletion
     !
@@ -76,11 +76,11 @@ main_bare_routing@7:
 
 // contract.SlotMachinePayoutModelInterface.get_payout_model() -> bytes:
 get_payout_model:
-    // src/src/contract.py:175-176
+    // src/src/contract.py:178-179
     // @arc4.abimethod(readonly=True)
     // def get_payout_model(self) -> PayoutModel:
     proto 0 1
-    // src/src/contract.py:180
+    // src/src/contract.py:183
     // return self._initial_payout_model()
     callsub _initial_payout_model
     retsub
@@ -88,11 +88,11 @@ get_payout_model:
 
 // contract.SlotMachinePayoutModelInterface._initial_payout_model() -> bytes:
 _initial_payout_model:
-    // src/src/contract.py:205-206
+    // src/src/contract.py:212-213
     // @subroutine
     // def _initial_payout_model(self) -> PayoutModel:
     proto 0 1
-    // src/src/contract.py:210-227
+    // src/src/contract.py:217-234
     // return PayoutModel(
     //     multipliers=arc4.StaticArray(
     //         arc4.UInt64(0),
@@ -117,11 +117,11 @@ _initial_payout_model:
 
 // contract.SlotMachinePayoutModelInterface.get_payout(bet_amount: bytes, r: bytes) -> bytes:
 get_payout:
-    // src/src/contract.py:189-190
+    // src/src/contract.py:196-197
     // @arc4.abimethod
     // def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
     proto 2 1
-    // src/src/contract.py:194
+    // src/src/contract.py:201
     // return arc4.UInt64(self._calculate_bet_payout(bet_amount.native, r.native))
     frame_dig -2
     btoi
@@ -134,11 +134,11 @@ get_payout:
 
 // contract.SlotMachinePayoutModelInterface._calculate_bet_payout(bet_amount: uint64, r: uint64) -> uint64:
 _calculate_bet_payout:
-    // src/src/contract.py:196-197
+    // src/src/contract.py:203-204
     // @subroutine
     // def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
     proto 2 1
-    // src/src/contract.py:203
+    // src/src/contract.py:210
     // return UInt64(0)
     int 0
     retsub

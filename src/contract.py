@@ -15,9 +15,10 @@ from algopy import (
     ARC4Contract,
     Application,
     BigUInt,
-    String
+    String,
+    itxn,
 )
-from opensubmarine import Upgradeable, Stakeable, ARC200Token, arc200_Transfer
+from opensubmarine import Ownable, Upgradeable, Stakeable, ARC200Token, arc200_Transfer
 from opensubmarine.utils.algorand import require_payment, close_offline_on_delete
 
 # TODO migrate to opensubmarine.utils.types
@@ -156,6 +157,7 @@ MAX_CLAIM_ROUND_DELTA = 1000  # 1000 rounds in the future
 MIN_BET_AMOUNT = 1000000  # 1 VOI
 MAX_BET_AMOUNT = 1000000000  # 1000 VOI
 MIN_BANK_AMOUNT = 350000000000  # 350,000 VOI
+SCALING_FACTOR = 10**12
 
 
 class PayoutModel(arc4.Struct):
@@ -166,6 +168,7 @@ class PayoutModel(arc4.Struct):
 class ModelUpdated(arc4.Struct):
     old_model: PayoutModel
     new_model: PayoutModel
+
 
 class SlotMachinePayoutModelInterface(ARC4Contract):
     """
@@ -178,9 +181,13 @@ class SlotMachinePayoutModelInterface(ARC4Contract):
         Get the payout model
         """
         return self._initial_payout_model()
-    
+
     @arc4.abimethod
-    def set_payout_model(self, multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]], probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]) -> None:
+    def set_payout_model(
+        self,
+        multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]],
+        probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]],
+    ) -> None:
         """
         Set the payout model
         """
@@ -245,7 +252,6 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
         # payout model state
         self.payout_model = self._initial_payout_model()
 
-
     # guard methods
 
     @subroutine
@@ -258,13 +264,21 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
     # setter methods
 
     @arc4.abimethod
-    def set_payout_model(self, multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]], probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]]) -> None:
+    def set_payout_model(
+        self,
+        multipliers: arc4.StaticArray[arc4.UInt64, typing.Literal[6]],
+        probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]],
+    ) -> None:
         """
         Set the payout model
         """
         self.only_owner()
-        self.payout_model = PayoutModel(multipliers=multipliers.copy(), probabilities=probabilities.copy())
-        arc4.emit(ModelUpdated(old_model=self.payout_model, new_model=self.payout_model))
+        self.payout_model = PayoutModel(
+            multipliers=multipliers.copy(), probabilities=probabilities.copy()
+        )
+        arc4.emit(
+            ModelUpdated(old_model=self.payout_model, new_model=self.payout_model)
+        )
 
     # accessor methods
 
@@ -355,6 +369,27 @@ class SlotMachineInterface(ARC4Contract):
         """
         return UInt64(0)
 
+    @arc4.abimethod(readonly=True)
+    def get_balance_available(self) -> arc4.UInt64:
+        """
+        Get the available balance
+        """
+        return arc4.UInt64(0)
+
+    @arc4.abimethod(readonly=True)
+    def get_balance_locked(self) -> arc4.UInt64:
+        """
+        Get the locked balance
+        """
+        return arc4.UInt64(0)
+
+    @arc4.abimethod(readonly=True)
+    def get_balance_total(self) -> arc4.UInt64:
+        """
+        Get the total balance
+        """
+        return arc4.UInt64(0)
+
 
 class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
     """
@@ -412,7 +447,9 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         Set the minimum bank amount
         """
         self.only_owner()
-        assert min_bank_amount.native >= MIN_BANK_AMOUNT, "min bank amount must be greater than 350,000 VOI"
+        assert (
+            min_bank_amount.native >= MIN_BANK_AMOUNT
+        ), "min bank amount must be greater than 350,000 VOI"
         self.min_bank_amount = min_bank_amount.native
 
     @arc4.abimethod
@@ -471,6 +508,22 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         """
         self.only_owner()
         self.deletable = False
+
+    @arc4.abimethod
+    def owner_deposit(self, amount: arc4.UInt64) -> None:
+        """
+        Deposit funds into the contract
+        """
+        self.only_owner()
+        self.balance_total += amount.native
+        self.balance_available += amount.native
+
+    @arc4.abimethod
+    def get_owner(self) -> arc4.Address:
+        """
+        Get the owner of the contract
+        """
+        return arc4.Address(self.owner)
 
     # block seed utils
 
@@ -569,26 +622,6 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         close_offline_on_delete(self.upgrader)
 
     # slot machine methods
-
-    # @arc4.abimethod
-    # def spin(
-    #     self,
-    #     bet_amount: arc4.UInt64,
-    #     index: arc4.UInt64,
-    # ) -> Bytes56:
-    #     """
-    #     Spin the slot machine. Outcome is determined by the seed
-    #     of future round.
-
-    #     Args:
-    #         bet (uint): The player's wager.
-    #         index (uint): Player's choice of index.
-
-    #     Returns:
-    #         r (uint): The round number of the spin.
-    #     """
-    #     return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
-
     # override
     @subroutine
     def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
@@ -615,7 +648,9 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
             extra_payment <= MAX_EXTRA_PAYMENT
         ), "extra payment must be less than max extra payment"
         # lock spin if balance total is less than min bank amount
-        assert self.balance_total >= self.min_bank_amount, "balance total must be greater than min bank amount"
+        assert (
+            self.balance_total >= self.min_bank_amount
+        ), "balance total must be greater than min bank amount"
         # Update balance tracking
         #   Add bet amount to total balance
         self.balance_total += bet_amount
@@ -623,7 +658,9 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
         max_possible_payout = bet_amount * UInt64(MAX_PAYOUT_MULTIPLIER)
         self.balance_locked += max_possible_payout
         # prevent underflow, impossible because it would err with result would be negative but good to have
-        assert self.balance_available >= max_possible_payout, "balance available must be greater than max possible payout"
+        assert (
+            self.balance_available >= max_possible_payout
+        ), "balance available must be greater than max possible payout"
         self.balance_available -= max_possible_payout
         # Create bet
         round = Global.round
@@ -647,19 +684,6 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
             )
         )
         return bet_key
-
-    # @arc4.abimethod
-    # def claim(self, bet_key: Bytes56) -> arc4.UInt64:
-    #     """
-    #     Claim a bet
-
-    #     Args:
-    #         bet_key: The key of the bet to claim
-
-    #     Returns:
-    #         payout: The payout for the bet
-    #     """
-    #     return arc4.UInt64(self._claim(bet_key.bytes))
 
     # override
     @subroutine
@@ -743,76 +767,255 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
             return payout.native
 
 
-# class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
-#     """
-#     A simple yield bearing token
-#     """
+class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
+    """
+    A simple yield bearing token
+    """
 
-#     def __init__(self) -> None:
-#         # arc200 state
-#         self.name = String()
-#         self.symbol = String()
-#         self.decimals = UInt64()
-#         self.totalSupply = BigUInt()
-#         # ownable state
-#         self.owner = Global.creator_address
-#         # upgradeable state
-#         self.upgrader = Global.creator_address
-#         self.contract_version = UInt64()
-#         self.deployment_version = UInt64()
-#         self.updatable = bool(1)
-#         # deleteable state
-#         self.deletable = bool(1)
-#         # stakeable state
-#         self.delegate = Account()
-#         self.stakeable = bool(1)
-#         # yield bearing state
-#         self.yield_bearing_source = UInt64()
+    def __init__(self) -> None:
+        super().__init__()
+        # arc200 state
+        self.name = String()
+        self.symbol = String()
+        self.decimals = UInt64()
+        self.totalSupply = BigUInt()
+        # ownable state
+        self.owner = Global.creator_address
+        # upgradeable state
+        self.upgrader = Global.creator_address
+        self.contract_version = UInt64()
+        self.deployment_version = UInt64()
+        self.updatable = bool(1)
+        # deleteable state
+        self.deletable = bool(1)
+        # stakeable state
+        self.delegate = Account()
+        self.stakeable = bool(1)
+        # yield bearing state
+        self.bootstrap_active = bool()
+        self.yield_bearing_source = UInt64()
+        self.yield_fuse_active = bool(1)
 
-#     # owner methods
+    # guard methods
 
-#     @arc4.abimethod
-#     def set_yield_bearing_source(self, app_id: arc4.UInt64) -> None:
-#         """
-#         Set the yield bearing source
-#         """
-#         self.only_owner()
-#         self.yield_bearing_source = app_id.native
+    @subroutine
+    def only_owner(self) -> None:
+        """
+        Only callable by contract owner
+        """
+        assert Txn.sender == self.owner, "only owner can call this function"
 
-#     @arc4.abimethod
-#     def deposit(self, amount: arc4.UInt64) -> arc4.UInt256:
-#         """
-#         Deposit funds into the contract
-#         """
-#         return arc4.UInt256(self._deposit(amount.native))
+    @arc4.abimethod
+    def bootstrap(self) -> None:
+        """
+        Bootstrap the contract
+        """
+        self.only_owner()
+        assert self.bootstrap_active == bool(), "bootstrap is not active"
+        self.name = String("House of Voi")
+        self.symbol = String("hVOI")
+        self.decimals = UInt64(9)
+        self.totalSupply = BigUInt(0)
+        self.bootstrap_active = True
 
-#     @subroutine
-#     def _deposit(self, amount: UInt64) -> BigUInt:
-#         """
-#         Deposit funds into the contract
-#         """
-#         assert amount > 0, "amount must be greater than 0"
-#         payment = require_payment(Txn.sender)
-#         required_payment = amount if Txn.sender in self.balances else amount + 28500
-#         assert payment >= required_payment, "payment insufficient"
-#         bigAmount = BigUInt(amount)
-#         return self._mint(bigAmount)
+    @arc4.abimethod
+    def set_yield_bearing_source(self, app_id: arc4.UInt64) -> None:
+        """
+        Set the yield bearing source
+        """
+        self.only_owner()
+        assert self.yield_fuse_active == bool(1), "yield fuse is not active"
+        app = Application(app_id.native)
+        owner, txn = arc4.abi_call(
+            SlotMachine.get_owner,
+            app_id=app,
+        )
+        assert (
+            owner == Global.current_application_address
+        ), "yield bearing source must be owned by this contract"
+        self.yield_bearing_source = app_id.native
 
-#     @subroutine
-#     def _get_yield_bearing_source_balance(self) -> UInt64:
-#         """
-#         Get the balance of the yield bearing source
-#         """
-#         available_balance, txn = arc4.abi_call(
-#             SlotMachineInterface.get_balance_available,
-#             app_id=Application(self.yield_bearing_source),
-#         )
-#         return available_balance
+    @arc4.abimethod
+    def revoke_yield_bearing_source(self, owner: arc4.Address) -> None:
+        """
+        Revoke the yield bearing source by transferring ownership to a new owner
+        """
+        self.only_owner()
+        assert self.yield_bearing_source > 0, "yield bearing source not set"
+        arc4.abi_call(
+            Ownable.transfer,
+            owner,
+            app_id=Application(self.yield_bearing_source),
+        )
 
+    @arc4.abimethod
+    def burn_yield_fuse(self) -> None:
+        """
+        Burn the yield fuse
+        """
+        self.only_owner()
+        assert self.yield_fuse_active == bool(1), "yield fuse is not active"
+        self.yield_fuse_active = False
 
-#     @subroutine
-#     def _mint(self, amount: BigUInt) -> BigUInt:
-#         """
-#         Mint tokens
-#         """
-#         shares = amount if self.totalSupply == 0 else amount * self.totalSupply / self.balance[Global.creator_address]
+    @arc4.abimethod
+    def burn_stakeable_fuse(self) -> None:
+        """
+        Burn the stakeable fuse
+        """
+        self.only_owner()
+        self.stakeable = False
+
+    @arc4.abimethod
+    def burn_deletable_fuse(self) -> None:
+        """
+        Burn the deletable fuse
+        """
+        self.only_owner()
+        self.deletable = False
+
+    @arc4.abimethod
+    def burn_upgradeable_fuse(self) -> None:
+        """
+        Burn the upgradeable fuse
+        """
+        self.only_owner()
+        self.updatable = False
+
+    @subroutine
+    def _get_yield_bearing_source_balance(self) -> UInt64:
+        """
+        Get the balance of the yield bearing source
+        """
+        available_balance, txn = arc4.abi_call(
+            SlotMachineInterface.get_balance_available,
+            app_id=Application(self.yield_bearing_source),
+        )
+        return available_balance.native
+
+    @arc4.abimethod
+    def deposit(self, amount: arc4.UInt64) -> arc4.UInt256:
+        """
+        Deposit funds into the contract
+
+        Args:
+            amount: Amount of funds to deposit
+        Returns:
+            The number of shares minted
+        """
+        # Validate inputs
+        assert amount.native > 0, "amount must be greater than 0"
+        assert self.yield_bearing_source > 0, "yield bearing source not set"
+
+        # Check payment
+        payment = require_payment(Txn.sender)
+        required_payment = (
+            amount.native
+            if self._balanceOf(Txn.sender) > 0
+            else amount.native + UInt64(28500)
+        )
+        assert payment >= required_payment, "payment insufficient"
+
+        # Forward to yield source
+        app = Application(self.yield_bearing_source)
+        itxn.Payment(receiver=app.address, amount=amount.native).submit()
+
+        # Call owner_deposit (ensure this contract is owner)
+        arc4.abi_call(
+            SlotMachine.owner_deposit,
+            amount,
+            app_id=app,
+        )
+
+        # Mint shares
+        return arc4.UInt256(self._mint(BigUInt(amount.native)))
+
+    @subroutine
+    def _mint(self, amount: BigUInt) -> BigUInt:
+        """
+        Mint tokens (shares) based on the proportion of assets being deposited
+
+        Args:
+            amount: The amount of assets being deposited
+        Returns:
+            BigUInt: The number of shares minted
+        Raises:
+            AssertionError: If deposit would result in 0 shares
+        """
+        total_assets = BigUInt(self._get_yield_bearing_source_balance())
+
+        if self.totalSupply == 0:
+            shares = amount * SCALING_FACTOR // total_assets
+        else:
+            shares = (amount * self.totalSupply) // total_assets
+
+        # Ensure minimum shares are minted to prevent dust deposits
+        assert shares > 0, "Deposit amount too small"
+        self.totalSupply += shares
+        self.balances[Txn.sender] = self._balanceOf(Txn.sender) + shares
+        arc4.emit(
+            arc200_Transfer(
+                arc4.Address(Global.zero_address),
+                arc4.Address(Txn.sender),
+                arc4.UInt256(shares),
+            )
+        )
+        return shares
+
+    @arc4.abimethod
+    def withdraw(self, amount: arc4.UInt256) -> arc4.UInt64:
+        """
+        Withdraw funds from the contract
+        """
+        assert amount.native > 0, "amount must be greater than 0"
+        assert self.yield_bearing_source > 0, "yield bearing source not set"
+        assert self._balanceOf(Txn.sender) >= amount.native, "insufficient balance"
+        return arc4.UInt64(self._burn(amount.native))
+
+    @subroutine
+    def _burn(self, withdraw_amount: BigUInt) -> UInt64:
+        """
+        Burn tokens (shares) based on the proportion of assets being withdrawn
+        """
+        # Calculate withdrawal amount with increased precision
+        slot_machine_balance, txn = arc4.abi_call(
+            SlotMachineInterface.get_balance_available,
+            app_id=Application(self.yield_bearing_source),
+        )
+        big_slot_machine_balance = BigUInt(slot_machine_balance.native)
+
+        amount_to_withdraw = (
+            (withdraw_amount * big_slot_machine_balance * SCALING_FACTOR)
+            // self.totalSupply
+        ) // SCALING_FACTOR
+
+        # Verify amount conversion
+        small_amount_to_withdraw = arc4.UInt64.from_bytes(
+            arc4.UInt256(amount_to_withdraw).bytes[-8:]
+        ).native
+        assert small_amount_to_withdraw > 0, "amount to withdraw is 0"
+        assert (
+            small_amount_to_withdraw <= slot_machine_balance.native
+        ), "amount to withdraw exceeds available balance"
+
+        # Update balances first
+        self.balances[Txn.sender] -= withdraw_amount
+        self.totalSupply -= withdraw_amount
+
+        # Make external calls after state updates
+        app = Application(self.yield_bearing_source)
+        arc4.abi_call(
+            SlotMachine.withdraw,
+            amount_to_withdraw,
+            app_id=app,
+        )
+        itxn.Payment(receiver=Txn.sender, amount=small_amount_to_withdraw).submit()
+
+        # Emit event
+        arc4.emit(
+            arc200_Transfer(
+                arc4.Address(Txn.sender),
+                arc4.Address(Global.zero_address),
+                arc4.UInt256(withdraw_amount),
+            )
+        )
+        return small_amount_to_withdraw
