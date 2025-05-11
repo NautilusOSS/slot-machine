@@ -7,6 +7,7 @@ import { CONTRACT } from "ulujs";
 import algosdk from "algosdk";
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env" });
+const BOX_COST_BET = 37700;
 export const program = new Command();
 const { MN, MN2, MN3 } = process.env;
 export const acc = algosdk.mnemonicToSecretKey(MN || "");
@@ -325,7 +326,7 @@ export const spin = async (options) => {
     const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
     ci.setEnableParamsLastRoundMod(true);
     ci.setEnableRawBytes(true);
-    ci.setPaymentAmount(options.amount + 1e5 + 37700);
+    ci.setPaymentAmount(options.amount + BOX_COST_BET);
     const spinR = await ci.spin(options.amount, options?.index || 0);
     if (options.debug) {
         console.log(spinR);
