@@ -219,6 +219,22 @@ export const transferOwnership = async (options) => {
     }
     return false;
 };
+program
+    .command("transfer-ownership")
+    .requiredOption("-a, --appId <number>", "Specify app id")
+    .requiredOption("-n, --newOwner <string>", "Specify new owner")
+    .option("-s, --sender <string>", "Specify sender")
+    .option("--debug", "Debug the transfer-ownership", false)
+    .option("--simulate", "Simulate the transfer-ownership", false)
+    .action(async (options) => {
+    const success = await transferOwnership({
+        ...options,
+        appId: Number(options.appId),
+    });
+    if (!success) {
+        console.log("Failed to transfer ownership");
+    }
+});
 // slot machine
 program
     .command("post-update")
@@ -409,7 +425,7 @@ program
     .command("set-payout-model")
     .requiredOption("-a, --appId <number>", "Specify app id")
     .requiredOption("-p, --payoutModelAppId <number>", "Specify payout model app id")
-    .requiredOption("-s, --sender <string>", "Specify sender")
+    .option("-s, --sender <string>", "Specify sender")
     .option("--debug", "Debug the set-payout-model", false)
     .option("--simulate", "Simulate the set-payout-model", false)
     .action(async (options) => {
@@ -504,6 +520,21 @@ export const bootstrap = async (options) => {
     }
     return false;
 };
+program
+    .command("bootstrap")
+    .requiredOption("-a, --appId <number>", "Specify app id")
+    .option("-s, --sender <string>", "Specify sender")
+    .option("--debug", "Debug the bootstrap", false)
+    .option("--simulate", "Simulate the bootstrap", false)
+    .action(async (options) => {
+    const success = await bootstrap({
+        ...options,
+        appId: Number(options.appId),
+    });
+    if (!success) {
+        console.log("Failed to bootstrap");
+    }
+});
 export const revokeYieldBearingSource = async (options) => {
     const addr = options.sender || addressses.deployer;
     const sk = options.sk || sks.deployer;
@@ -539,6 +570,23 @@ export const setYieldBearingSource = async (options) => {
     }
     return false;
 };
+program
+    .command("set-yield-bearing-source")
+    .requiredOption("-a, --appId <number>", "Specify app id")
+    .requiredOption("-s, --source <number>", "Specify source")
+    .option("-t, --sender <string>", "Specify sender")
+    .option("--debug", "Debug the set-yield-bearing-source", false)
+    .option("--simulate", "Simulate the set-yield-bearing-source", false)
+    .action(async (options) => {
+    const success = await setYieldBearingSource({
+        ...options,
+        appId: Number(options.appId),
+        source: Number(options.source),
+    });
+    if (!success) {
+        console.log("Failed to set yield bearing source");
+    }
+});
 export const ybtDeposit = async (options) => {
     const addr = options.sender || addressses.deployer;
     const sk = options.sk || sks.deployer;
@@ -558,6 +606,23 @@ export const ybtDeposit = async (options) => {
     }
     return BigInt(0);
 };
+program
+    .command("ybt-deposit")
+    .requiredOption("-a, --appId <number>", "Specify app id")
+    .requiredOption("-b, --amount <number>", "Specify amount")
+    .option("-s, --sender <string>", "Specify sender")
+    .option("--debug", "Debug the ybt-deposit", false)
+    .option("--simulate", "Simulate the ybt-deposit", false)
+    .action(async (options) => {
+    const success = await ybtDeposit({
+        ...options,
+        appId: Number(options.appId),
+        amount: Number(options.amount),
+    });
+    if (!success) {
+        console.log("Failed to deposit");
+    }
+});
 export const ybtWithdraw = async (options) => {
     const addr = options.sender || addressses.deployer;
     const sk = options.sk || sks.deployer;
