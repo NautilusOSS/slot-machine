@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { SlotMachineClient, APP_SPEC as SlotMachineSpec, } from "./clients/SlotMachineClient.js";
 import { SlotMachinePayoutModelClient, } from "./clients/SlotMachinePayoutModelClient.js";
 import { BeaconClient, APP_SPEC as BeaconSpec, } from "./clients/BeaconClient.js";
+import { YieldBearingTokenClient, APP_SPEC as YieldBearingTokenSpec, } from "./clients/YieldBearingTokenClient.js";
 import { CONTRACT } from "ulujs";
 import algosdk from "algosdk";
 import * as dotenv from "dotenv";
@@ -148,6 +149,10 @@ export const deploy = async (options) => {
             Client = BeaconClient;
             break;
         }
+        case "YieldBearingToken": {
+            Client = YieldBearingTokenClient;
+            break;
+        }
     }
     const clientParams = {
         resolveBy: "creatorAndName",
@@ -197,6 +202,24 @@ export const postUpdate = async (options) => {
     }
     return false;
 };
+export const transferOwnership = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
+    const transferOwnershipR = await ci.transfer(options.newOwner);
+    if (options.debug) {
+        console.log(transferOwnershipR);
+    }
+    if (transferOwnershipR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(transferOwnershipR.txns, sk);
+        }
+        return true;
+    }
+    return false;
+};
+// slot machine
 program
     .command("post-update")
     .requiredOption("-a, --appId <number>", "Specify app id")
@@ -429,4 +452,127 @@ export const setPayoutModel = async (options) => {
         multipliers: options.multipliers.map(BigInt),
         probabilities: options.probabilities.map(BigInt),
     });
+};
+export const getOwner = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
+    const ownerR = await ci.get_owner();
+    return ownerR.returnValue;
+};
+export const arc200BalanceOf = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    const balanceOfR = await ci.arc200_balanceOf(options.address);
+    return balanceOfR.returnValue;
+};
+export const arc200Approve = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    const approveR = await ci.arc200_approve(options.spender, options.amount);
+    if (options.debug) {
+        console.log(approveR);
+    }
+    if (approveR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(approveR.txns, sk);
+        }
+        return true;
+    }
+    return false;
+};
+export const bootstrap = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    ci.setPaymentAmount(1e6);
+    const bootstrapR = await ci.bootstrap();
+    if (options.debug) {
+        console.log(bootstrapR);
+    }
+    if (bootstrapR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(bootstrapR.txns, sk);
+        }
+        return true;
+    }
+    return false;
+};
+export const revokeYieldBearingSource = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    const revokeYieldBearingSourceR = await ci.revoke_yield_bearing_source(options.newOwner);
+    if (options.debug) {
+        console.log(revokeYieldBearingSourceR);
+    }
+    if (revokeYieldBearingSourceR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(revokeYieldBearingSourceR.txns, sk);
+        }
+        return true;
+    }
+    return false;
+};
+export const setYieldBearingSource = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    ci.setFee(2000);
+    const setYieldBearingSourceR = await ci.set_yield_bearing_source(options.source);
+    if (options.debug) {
+        console.log(setYieldBearingSourceR);
+    }
+    if (setYieldBearingSourceR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(setYieldBearingSourceR.txns, sk);
+        }
+        return true;
+    }
+    return false;
+};
+export const ybtDeposit = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    ci.setFee(4000);
+    ci.setPaymentAmount(options.amount);
+    const depositR = await ci.deposit();
+    if (options.debug) {
+        console.log(depositR);
+    }
+    if (depositR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(depositR.txns, sk);
+        }
+        return depositR.returnValue;
+    }
+    return BigInt(0);
+};
+export const ybtWithdraw = async (options) => {
+    const addr = options.sender || addressses.deployer;
+    const sk = options.sk || sks.deployer;
+    const acc = { addr, sk };
+    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(YieldBearingTokenSpec), acc);
+    ci.setFee(5000);
+    const withdrawR = await ci.withdraw(options.amount);
+    if (options.debug) {
+        console.log(withdrawR);
+    }
+    if (withdrawR.success) {
+        if (!options.simulate) {
+            await signSendAndConfirm(withdrawR.txns, sk);
+        }
+        return withdrawR.returnValue;
+    }
+    return BigInt(0);
 };

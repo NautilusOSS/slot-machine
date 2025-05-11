@@ -13,11 +13,24 @@ import {
   algodClient,
   slotMachineSetPayoutModel,
   kill,
+  // slot machine
+  getOwner,
   // beacon
   touch,
   // payment model
   setPayoutModel,
+  // ybt
+  bootstrap,
+  revokeYieldBearingSource,
+  setYieldBearingSource,
+  ybtDeposit,
+  ybtWithdraw,
+  // owneable
+  transferOwnership,
+  // arc200
+  arc200BalanceOf,
 } from "../command.js";
+import algosdk from "algosdk";
 
 const invalidSpin = Buffer.from(new Uint8Array(56).fill(0)).toString("hex");
 
@@ -57,9 +70,12 @@ describe("Slot Machine Testing", function () {
   };
   let contract;
   let appId;
+  let contract2; // ybt owner slot machine
+  let appId2; // ybt owner slot machine
   let payoutModelContract;
   let payoutModelAppId;
   let beaconAppId;
+  let ybtAppId;
   const player1 = {
     sender: addressses.player1,
     sk: sks.player1,
@@ -69,10 +85,11 @@ describe("Slot Machine Testing", function () {
     sk: sks.player2,
   };
   before(async function () {
+    const now = Date.now();
     {
       const { appId: id, appClient } = await deploy({
         type: "SlotMachinePayoutModel",
-        name: "SlotMachinePayoutModel",
+        name: `SlotMachinePayoutModel-${now}`,
       });
       payoutModelAppId = id;
       payoutModelContract = appClient;
@@ -90,7 +107,7 @@ describe("Slot Machine Testing", function () {
     {
       const res = await deploy({
         type: "Beacon",
-        name: "Beacon",
+        name: `Beacon-${now}`,
       });
       beaconAppId = res.appId;
       expect(beaconAppId).to.not.equal(0);
@@ -98,25 +115,62 @@ describe("Slot Machine Testing", function () {
   });
   beforeEach(async function () {
     const now = Date.now();
-    const { appId: id, appClient } = await deploy({
-      ...deployOptions,
-      name: `${deployOptions.name}-${now}`,
-    });
-    appId = id;
-    contract = appClient;
-    const setPayoutModelSuccess = await slotMachineSetPayoutModel({
-      appId,
-      payoutModelAppId,
-      sender: addressses.deployer,
-      sk: sks.deployer,
-    });
-    const depositSuccess = await deposit({
-      appId,
-      amount: MIN_BANK_AMOUNT,
-    });
-    expect(appId).to.not.equal(0);
-    expect(setPayoutModelSuccess).to.be.true;
-    expect(depositSuccess).to.be.true;
+    {
+      const { appId: id, appClient } = await deploy({
+        ...deployOptions,
+        name: `${deployOptions.name}-${now}`,
+      });
+      appId = id;
+      contract = appClient;
+      const setPayoutModelSuccess = await slotMachineSetPayoutModel({
+        appId,
+        payoutModelAppId,
+        sender: addressses.deployer,
+        sk: sks.deployer,
+      });
+      const depositSuccess = await deposit({
+        appId,
+        amount: MIN_BANK_AMOUNT,
+      });
+      expect(appId).to.not.equal(0);
+      expect(setPayoutModelSuccess).to.be.true;
+      expect(depositSuccess).to.be.true;
+    }
+    {
+      const { appId: id, appClient } = await deploy({
+        ...deployOptions,
+        name: `${deployOptions.name}2-${now}`,
+      });
+      appId2 = id;
+      contract2 = appClient;
+      const setPayoutModelSuccess = await slotMachineSetPayoutModel({
+        appId: appId2,
+        payoutModelAppId,
+        sender: addressses.deployer,
+        sk: sks.deployer,
+      });
+      const res = await deploy({
+        type: "YieldBearingToken",
+        name: `YieldBearingToken-${now}`,
+      });
+      ybtAppId = res.appId;
+      const bootstrapSuccess = await bootstrap({
+        appId: ybtAppId,
+      });
+      const transferOwnershipR = await transferOwnership({
+        appId: appId2,
+        newOwner: algosdk.getApplicationAddress(ybtAppId),
+      });
+      const setYieldBearingSourceR = await setYieldBearingSource({
+        appId: ybtAppId,
+        source: appId2,
+      });
+      expect(appId2).to.not.equal(0);
+      expect(setPayoutModelSuccess).to.be.true;
+      expect(bootstrapSuccess).to.be.true;
+      expect(transferOwnershipR).to.be.true;
+      expect(setYieldBearingSourceR).to.be.true;
+    }
   });
   afterEach(async function () {
     await kill({
@@ -133,6 +187,11 @@ describe("Slot Machine Testing", function () {
   it("Should deploy payout model", async function () {
     console.log("payoutModelAppId", payoutModelAppId);
     expect(payoutModelAppId).to.not.equal(0);
+  });
+  // YBT TESTING ------------------------------------------------------------
+  it("Should deploy ybt", async function () {
+    console.log("ybtAppId", ybtAppId);
+    expect(ybtAppId).to.not.equal(0);
   });
   // SLOT MACHINE TESTING ------------------------------------------------------------
   it("Should deploy contract", async function () {
@@ -241,7 +300,7 @@ describe("Slot Machine Testing", function () {
       // TODO use simulate
       await contract.setMinBankAmount({
         minBankAmount: MIN_BANK_AMOUNT - 1,
-      })
+      });
       // If we reach here, the call didn't throw as expected
       expect.fail("Expected setMinBankAmount to throw an error");
     } catch (error) {
@@ -252,7 +311,6 @@ describe("Slot Machine Testing", function () {
     }
   });
   it("Should lock spin if balance total is less than min bank amount", async function () {
-    // bring available balance below min bank where it starts off
     await withdraw({
       appId,
       amount: 1e6,
@@ -270,5 +328,60 @@ describe("Slot Machine Testing", function () {
   it("Should not spin if balance available is less than max payout of amount", async function () {
     // it is not possible without increasing max bet to at least 3.5k VOI with balance available
     // at min bank amount. Leaving this here as a reminder.
+  });
+  // ownership testing  (see ownable.contract.test.js for more)---------------------------------------------------
+  it("Should be owned by deployer", async function () {
+    const owner = await getOwner({
+      appId,
+    });
+    expect(owner).to.be.eq(addressses.deployer);
+  });
+  // start ybt owned testing here
+  it("Should be owned by ybt", async function () {
+    const owner = await getOwner({
+      appId: appId2,
+    });
+    expect(owner).to.be.eq(algosdk.getApplicationAddress(ybtAppId));
+  });
+  // we can deposit via ybt
+  it("Should deposit via ybt", async function () {
+    await deposit({
+      appId,
+      amount: 1e6,
+    });
+    // TODO resolve ybt from slot machine
+    await ybtDeposit({
+      appId: ybtAppId,
+      amount: 400_000e6,
+      ...player1,
+    });
+    const depositR = await ybtDeposit({
+      appId: ybtAppId,
+      amount: 1e6,
+    });
+    console.log("payment", 1e6);
+    console.log("depositR", depositR);
+    const balance = await arc200BalanceOf({
+      appId: ybtAppId,
+      address: addressses.deployer,
+    });
+    expect(balance).to.be.eq(depositR);
+    // spin and claim 25 times
+    for await (const _ of Array(200)) {
+      console.log("spinning");
+      const claimR = await spinClaimOnce(appId2, beaconAppId, player1);
+      console.log("claimR", claimR.returnValue);
+      expect(claimR.success).to.be.true;
+      expect(claimR.returnValue).to.be.oneOf(
+        [0, 2e6, 5e6, 10e6, 20e6, 50e6, 100e6].map(BigInt)
+      );
+    }
+    // withdraw depositR
+    const withdrawR = await ybtWithdraw({
+      appId: ybtAppId,
+      amount: depositR,
+      debug: true,
+    });
+    console.log("withdrawR", withdrawR);
   });
 });

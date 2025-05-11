@@ -239,6 +239,19 @@
       "desc": "Claim a bet"
     },
     {
+      "name": "transfer",
+      "args": [
+        {
+          "type": "address",
+          "name": "new_owner"
+        }
+      ],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
       "name": "set_version",
       "args": [
         {
@@ -326,20 +339,6 @@
       "returns": {
         "type": "void"
       }
-    },
-    {
-      "name": "transfer",
-      "args": [
-        {
-          "type": "address",
-          "name": "new_owner"
-        }
-      ],
-      "readonly": false,
-      "returns": {
-        "type": "void"
-      },
-      "desc": "Transfer ownership of the contract to a new owner. Emits OwnershipTransferred event."
     }
   ],
   "networks": {}

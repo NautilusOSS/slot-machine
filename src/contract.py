@@ -16,7 +16,6 @@ from algopy import (
     Application,
     BigUInt,
     String,
-    itxn,
 )
 from opensubmarine import Ownable, Upgradeable, Stakeable, ARC200Token, arc200_Transfer
 from opensubmarine.utils.algorand import require_payment, close_offline_on_delete
@@ -148,6 +147,7 @@ class BetClaimed(arc4.Struct):
 
 # Constants
 
+BOX_COST_BALANCE = 28500  # 28500 microVOI
 BOX_COST_BET = 37700  # 37700 microVOI
 MAX_RANDOM_NUMBER = 1000000000  # 1 billion
 MAX_EXTRA_PAYMENT = 1000000  # 1 VOI
@@ -391,7 +391,7 @@ class SlotMachineInterface(ARC4Contract):
         return arc4.UInt64(0)
 
 
-class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     """
     A simple slot machine smart contract
     """
@@ -767,13 +767,12 @@ class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
             return payout.native
 
 
-class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
+class YieldBearingToken(ARC200Token, Ownable, Upgradeable, Deleteable, Stakeable):
     """
     A simple yield bearing token
     """
 
     def __init__(self) -> None:
-        super().__init__()
         # arc200 state
         self.name = String()
         self.symbol = String()
@@ -831,7 +830,7 @@ class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
             app_id=app,
         )
         assert (
-            owner == Global.current_application_address
+            owner.native == Global.current_application_address
         ), "yield bearing source must be owned by this contract"
         self.yield_bearing_source = app_id.native
 
@@ -893,7 +892,7 @@ class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
         return available_balance.native
 
     @arc4.abimethod
-    def deposit(self, amount: arc4.UInt64) -> arc4.UInt256:
+    def deposit(self) -> arc4.UInt256:
         """
         Deposit funds into the contract
 
@@ -903,31 +902,28 @@ class YieldBearingToken(ARC200Token, Upgradeable, Deleteable, Stakeable):
             The number of shares minted
         """
         # Validate inputs
-        assert amount.native > 0, "amount must be greater than 0"
         assert self.yield_bearing_source > 0, "yield bearing source not set"
 
         # Check payment
         payment = require_payment(Txn.sender)
-        required_payment = (
-            amount.native
-            if self._balanceOf(Txn.sender) > 0
-            else amount.native + UInt64(28500)
-        )
-        assert payment >= required_payment, "payment insufficient"
+        assert payment > BOX_COST_BALANCE, "payment insufficient"
+        deposit_amount = payment if self._balanceOf(Txn.sender) > 0 else payment - BOX_COST_BALANCE
+        assert (
+            deposit_amount > 0
+        ), "deposit amount must be greater than 0"  # impossible because of assert above
 
         # Forward to yield source
         app = Application(self.yield_bearing_source)
-        itxn.Payment(receiver=app.address, amount=amount.native).submit()
-
+        itxn.Payment(receiver=app.address, amount=deposit_amount).submit()
         # Call owner_deposit (ensure this contract is owner)
         arc4.abi_call(
             SlotMachine.owner_deposit,
-            amount,
+            arc4.UInt64(deposit_amount),
             app_id=app,
         )
 
         # Mint shares
-        return arc4.UInt256(self._mint(BigUInt(amount.native)))
+        return arc4.UInt256(self._mint(BigUInt(deposit_amount)))
 
     @subroutine
     def _mint(self, amount: BigUInt) -> BigUInt:

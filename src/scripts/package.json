@@ -7,6 +7,8 @@
     "test": "mocha",
     "test-payoutmodel": "mocha --grep 'Payout Model'",
     "test-slotmachine": "mocha --grep 'Slot Machine'",
+    "test-ybt": "mocha --grep 'Yield Bearing Token'",
+    "test-ownable": "mocha --grep 'Ownable'",
     "start": "node index.js"
   },
   "author": "",

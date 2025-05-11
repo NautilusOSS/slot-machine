@@ -169,11 +169,11 @@ main_on_update@15:
     return
 
 main_on_delete@16:
-    // src/src/contract.py:59
+    // src/src/contract.py:58
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:59-60
+    // src/src/contract.py:58-59
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     callsub on_delete
@@ -584,11 +584,11 @@ on_update:
 
 // contract.Deleteable.on_delete() -> void:
 on_delete:
-    // src/src/contract.py:59-60
+    // src/src/contract.py:58-59
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     proto 0 0
-    // src/src/contract.py:61-64
+    // src/src/contract.py:60-63
     // ##########################################
     // # WARNING: This app can be deleted by the creator (Development)
     // ##########################################
@@ -597,13 +597,13 @@ on_delete:
     global CreatorAddress
     ==
     assert // must be creator
-    // src/src/contract.py:65
+    // src/src/contract.py:64
     // assert self.deletable == UInt64(1), "not approved"
     int 0
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:65
+    // src/src/contract.py:64
     // assert self.deletable == UInt64(1), "not approved"
     app_global_get_ex
     assert // check self.deletable exists
@@ -655,7 +655,7 @@ __init__:
     // self.updatable = bool(1)
     int 1
     app_global_put
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
     // src/src/contract.py:250-251

@@ -11,6 +11,10 @@ import {
   BeaconClient,
   APP_SPEC as BeaconSpec,
 } from "./clients/BeaconClient.js";
+import {
+  YieldBearingTokenClient,
+  APP_SPEC as YieldBearingTokenSpec,
+} from "./clients/YieldBearingTokenClient.js";
 import { CONTRACT } from "ulujs";
 import algosdk from "algosdk";
 import * as dotenv from "dotenv";
@@ -172,7 +176,11 @@ export const getEvents = async (appId: number) => {
   return events;
 };
 
-type DeployType = "SlotMachine" | "SlotMachinePayoutModel" | "Beacon";
+type DeployType =
+  | "SlotMachine"
+  | "SlotMachinePayoutModel"
+  | "Beacon"
+  | "YieldBearingToken";
 
 interface DeployOptions {
   type: DeployType;
@@ -200,6 +208,10 @@ export const deploy: any = async (options: DeployOptions) => {
     }
     case "Beacon": {
       Client = BeaconClient;
+      break;
+    }
+    case "YieldBearingToken": {
+      Client = YieldBearingTokenClient;
       break;
     }
   }
@@ -266,6 +278,45 @@ export const postUpdate: any = async (options: PostUpdateOptions) => {
   }
   return false;
 };
+
+// owneable
+
+interface TransferOwnershipOptions {
+  appId: number;
+  sender: string;
+  newOwner: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const transferOwnership: any = async (
+  options: TransferOwnershipOptions
+) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(SlotMachineSpec),
+    acc
+  );
+  const transferOwnershipR = await ci.transfer(options.newOwner);
+  if (options.debug) {
+    console.log(transferOwnershipR);
+  }
+  if (transferOwnershipR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(transferOwnershipR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+// slot machine
 
 program
   .command("post-update")
@@ -649,4 +700,264 @@ export const setPayoutModel: any = async (options: SetPayoutModelOptions) => {
     multipliers: options.multipliers.map(BigInt),
     probabilities: options.probabilities.map(BigInt),
   });
+};
+
+interface GetOwnerOptions {
+  appId: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+}
+
+export const getOwner: any = async (options: GetOwnerOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(SlotMachineSpec),
+    acc
+  );
+  const ownerR = await ci.get_owner();
+  return ownerR.returnValue;
+};
+
+// arc200
+
+interface Arc200BalanceOfOptions {
+  appId: number;
+  address: string;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+}
+
+export const arc200BalanceOf: any = async (options: Arc200BalanceOfOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  const balanceOfR = await ci.arc200_balanceOf(options.address);
+  return balanceOfR.returnValue;
+};
+
+interface Arc200ApproveOptions {
+  appId: number;
+  spender: string;
+  amount: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const arc200Approve: any = async (options: Arc200ApproveOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  const approveR = await ci.arc200_approve(options.spender, options.amount);
+  if (options.debug) {
+    console.log(approveR);
+  }
+  if (approveR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(approveR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+// ybt
+
+interface BootstrapOptions {
+  appId: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const bootstrap: any = async (options: BootstrapOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  ci.setPaymentAmount(1e6);
+  const bootstrapR = await ci.bootstrap();
+  if (options.debug) {
+    console.log(bootstrapR);
+  }
+  if (bootstrapR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(bootstrapR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+interface RevokeYieldBearingSourceOptions {
+  appId: number;
+  newOwner: string;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const revokeYieldBearingSource: any = async (
+  options: RevokeYieldBearingSourceOptions
+) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  const revokeYieldBearingSourceR = await ci.revoke_yield_bearing_source(
+    options.newOwner
+  );
+  if (options.debug) {
+    console.log(revokeYieldBearingSourceR);
+  }
+  if (revokeYieldBearingSourceR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(revokeYieldBearingSourceR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+interface SetYieldBearingSourceOptions {
+  appId: number;
+  source: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const setYieldBearingSource: any = async (
+  options: SetYieldBearingSourceOptions
+) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  ci.setFee(2000);
+  const setYieldBearingSourceR = await ci.set_yield_bearing_source(
+    options.source
+  );
+  if (options.debug) {
+    console.log(setYieldBearingSourceR);
+  }
+  if (setYieldBearingSourceR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(setYieldBearingSourceR.txns, sk);
+    }
+    return true;
+  }
+  return false;
+};
+
+interface ybtDepositOptions {
+  appId: number;
+  amount: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const ybtDeposit: any = async (options: ybtDepositOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  ci.setFee(4000);
+  ci.setPaymentAmount(options.amount);
+  const depositR = await ci.deposit();
+  if (options.debug) {
+    console.log(depositR);
+  }
+  if (depositR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(depositR.txns, sk);
+    }
+    return depositR.returnValue;
+  }
+  return BigInt(0);
+};
+
+interface ybtWithdrawOptions {
+  appId: number;
+  amount: number;
+  sender: string;
+  sk: any;
+  debug?: boolean;
+  simulate?: boolean;
+}
+
+export const ybtWithdraw: any = async (options: ybtWithdrawOptions) => {
+  const addr = options.sender || addressses.deployer;
+  const sk = options.sk || sks.deployer;
+  const acc = { addr, sk };
+  const ci = new CONTRACT(
+    options.appId,
+    algodClient,
+    indexerClient,
+    makeABI(YieldBearingTokenSpec),
+    acc
+  );
+  ci.setFee(5000);
+  const withdrawR = await ci.withdraw(options.amount);
+  if (options.debug) {
+    console.log(withdrawR);
+  }
+  if (withdrawR.success) {
+    if (!options.simulate) {
+      await signSendAndConfirm(withdrawR.txns, sk);
+    }
+    return withdrawR.returnValue;
+  }
+  return BigInt(0);
 };

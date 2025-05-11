@@ -1,7 +1,7 @@
 #pragma version 10
 
 contract.Touchable.clear_state_program:
-    // src/src/contract.py:82
+    // src/src/contract.py:81
     // class Touchable(TouchableInterface):
     int 1
     return

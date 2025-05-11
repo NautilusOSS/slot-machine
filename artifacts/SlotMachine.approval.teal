@@ -7,7 +7,7 @@ contract.SlotMachine.approval_program:
 
 main_entrypoint@2:
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txn NumAppArgs
     bz main_bare_routing@31
     method "post_upgrade()void"
@@ -29,14 +29,14 @@ main_entrypoint@2:
     method "kill()void"
     method "spin(uint64,uint64)byte[56]"
     method "claim(byte[56])uint64"
+    method "transfer(address)void"
     method "set_version(uint64,uint64)void"
     method "approve_update(bool)void"
     method "grant_upgrader(address)void"
     method "set_delegate(address)void"
     method "participate(byte[32],byte[32],uint64,uint64,uint64,byte[64])void"
-    method "transfer(address)void"
     txna ApplicationArgs 0
-    match main_post_upgrade_route@4 main_set_min_bank_amount_route@5 main_set_payout_model_route@6 main_set_min_bet_amount_route@7 main_set_max_bet_amount_route@8 main_burn_upgreadable_fuse_route@9 main_burn_stakeable_fuse_route@10 main_burn_deletable_fuse_route@11 main_owner_deposit_route@12 main_get_owner_route@13 main_deposit_route@14 main_withdraw_route@15 main_get_balance_available_route@16 main_get_balance_locked_route@17 main_get_balance_total_route@18 main_get_bet_key_route@19 main_kill_route@20 main_spin_route@21 main_claim_route@22 main_set_version_route@23 main_approve_update_route@24 main_grant_upgrader_route@25 main_set_delegate_route@26 main_participate_route@27 main_transfer_route@28
+    match main_post_upgrade_route@4 main_set_min_bank_amount_route@5 main_set_payout_model_route@6 main_set_min_bet_amount_route@7 main_set_max_bet_amount_route@8 main_burn_upgreadable_fuse_route@9 main_burn_stakeable_fuse_route@10 main_burn_deletable_fuse_route@11 main_owner_deposit_route@12 main_get_owner_route@13 main_deposit_route@14 main_withdraw_route@15 main_get_balance_available_route@16 main_get_balance_locked_route@17 main_get_balance_total_route@18 main_get_bet_key_route@19 main_kill_route@20 main_spin_route@21 main_claim_route@22 main_transfer_route@23 main_set_version_route@24 main_approve_update_route@25 main_grant_upgrader_route@26 main_set_delegate_route@27 main_participate_route@28
     err // reject transaction
 
 main_post_upgrade_route@4:
@@ -60,7 +60,7 @@ main_set_min_bank_amount_route@5:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:444
     // @arc4.abimethod
@@ -77,7 +77,7 @@ main_set_payout_model_route@6:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:455
     // @arc4.abimethod
@@ -94,7 +94,7 @@ main_set_min_bet_amount_route@7:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:464
     // @arc4.abimethod
@@ -111,7 +111,7 @@ main_set_max_bet_amount_route@8:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:476
     // @arc4.abimethod
@@ -164,7 +164,7 @@ main_owner_deposit_route@12:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:512
     // @arc4.abimethod
@@ -209,7 +209,7 @@ main_withdraw_route@15:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:546
     // @arc4.abimethod
@@ -274,7 +274,7 @@ main_get_bet_key_route@19:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
     txna ApplicationArgs 3
@@ -311,7 +311,7 @@ main_spin_route@21:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
     // src/src/contract.py:314
@@ -333,7 +333,7 @@ main_claim_route@22:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // src/src/contract.py:346
     // @arc4.abimethod
@@ -345,7 +345,24 @@ main_claim_route@22:
     int 1
     return
 
-main_set_version_route@23:
+main_transfer_route@23:
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:34
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // src/src/contract.py:394
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
+    txna ApplicationArgs 1
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:34
+    // @arc4.abimethod
+    callsub transfer
+    int 1
+    return
+
+main_set_version_route@24:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
     // @arc4.abimethod
     txn OnCompletion
@@ -354,7 +371,7 @@ main_set_version_route@23:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
@@ -363,7 +380,7 @@ main_set_version_route@23:
     int 1
     return
 
-main_approve_update_route@24:
+main_approve_update_route@25:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
     txn OnCompletion
@@ -372,7 +389,7 @@ main_approve_update_route@24:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
@@ -380,7 +397,7 @@ main_approve_update_route@24:
     int 1
     return
 
-main_grant_upgrader_route@25:
+main_grant_upgrader_route@26:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
     txn OnCompletion
@@ -389,7 +406,7 @@ main_grant_upgrader_route@25:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
@@ -397,7 +414,7 @@ main_grant_upgrader_route@25:
     int 1
     return
 
-main_set_delegate_route@26:
+main_set_delegate_route@27:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:81
     // @arc4.abimethod
     txn OnCompletion
@@ -406,7 +423,7 @@ main_set_delegate_route@26:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:81
     // @arc4.abimethod
@@ -414,7 +431,7 @@ main_set_delegate_route@26:
     int 1
     return
 
-main_participate_route@27:
+main_participate_route@28:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/participation/Stakable/contract.py:89
     // @arc4.abimethod
     txn OnCompletion
@@ -423,7 +440,7 @@ main_participate_route@27:
     txn ApplicationID
     assert // is not creating
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
     txna ApplicationArgs 3
@@ -436,27 +453,16 @@ main_participate_route@27:
     int 1
     return
 
-main_transfer_route@28:
-    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:22
-    // @arc4.abimethod
-    txn OnCompletion
-    !
-    assert // OnCompletion is NoOp
-    txn ApplicationID
-    assert // is not creating
-    int 1
-    return
-
 main_bare_routing@31:
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txn OnCompletion
     switch main_create@32 main_reject_bare_on_completion@35 main_reject_bare_on_completion@35 main_reject_bare_on_completion@35 main_on_update@33 main_on_delete@34
     err // reject transaction
 
 main_create@32:
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     txn ApplicationID
     !
     assert // is creating
@@ -476,11 +482,11 @@ main_on_update@33:
     return
 
 main_on_delete@34:
-    // src/src/contract.py:59
+    // src/src/contract.py:58
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:59-60
+    // src/src/contract.py:58-59
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     callsub on_delete
@@ -489,7 +495,7 @@ main_on_delete@34:
 
 main_reject_bare_on_completion@35:
     // src/src/contract.py:394
-    // class SlotMachine(SlotMachineInterface, Upgradeable, Stakeable, Deleteable):
+    // class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deleteable):
     err // reject transaction
 
 
@@ -738,7 +744,7 @@ burn_deletable_fuse:
     // src/src/contract.py:509
     // self.only_owner()
     callsub only_owner
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
     // src/src/contract.py:510
@@ -1196,7 +1202,7 @@ kill:
     // src/src/contract.py:619
     // assert self.deletable == UInt64(1), "not approved"
     int 0
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
     // src/src/contract.py:619
@@ -1358,78 +1364,79 @@ spin:
 
 // contract.SlotMachine._spin(bet_amount: uint64, index: uint64) -> bytes:
 _spin:
-    // src/src/contract.py:645-647
+    // src/src/contract.py:624-627
+    // # slot machine methods
     // # override
     // @subroutine
     // def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
     proto 2 1
-    // src/src/contract.py:659
+    // src/src/contract.py:639
     // assert bet_amount >= self.min_bet_amount, "bet amount too small"
     int 0
     // src/src/contract.py:416
     // self.min_bet_amount = UInt64(MIN_BET_AMOUNT)  # 1 VOI
     byte "min_bet_amount"
-    // src/src/contract.py:659
+    // src/src/contract.py:639
     // assert bet_amount >= self.min_bet_amount, "bet amount too small"
     app_global_get_ex
     assert // check self.min_bet_amount exists
     frame_dig -2
     <=
     assert // bet amount too small
-    // src/src/contract.py:660
+    // src/src/contract.py:640
     // assert bet_amount <= self.max_bet_amount, "bet amount too large"
     int 0
     // src/src/contract.py:417
     // self.max_bet_amount = UInt64(MAX_BET_AMOUNT)  # 1000 VOI
     byte "max_bet_amount"
-    // src/src/contract.py:660
+    // src/src/contract.py:640
     // assert bet_amount <= self.max_bet_amount, "bet amount too large"
     app_global_get_ex
     assert // check self.max_bet_amount exists
     frame_dig -2
     >=
     assert // bet amount too large
-    // src/src/contract.py:661
+    // src/src/contract.py:641
     // payment = require_payment(Txn.sender)
     txn Sender
     callsub require_payment
-    // src/src/contract.py:662
+    // src/src/contract.py:642
     // assert payment >= bet_amount, "payment insufficient"
     dup
     frame_dig -2
     >=
     assert // payment insufficient
-    // src/src/contract.py:663
+    // src/src/contract.py:643
     // extra_payment = payment - bet_amount
     frame_dig -2
     -
-    // src/src/contract.py:665
+    // src/src/contract.py:645
     // extra_payment >= BOX_COST_BET
     dup
     int 37700
     >=
-    // src/src/contract.py:664-666
+    // src/src/contract.py:644-646
     // assert (
     //     extra_payment >= BOX_COST_BET
     // ), "extra payment must be greater than box cost"
     assert // extra payment must be greater than box cost
-    // src/src/contract.py:668
+    // src/src/contract.py:648
     // extra_payment <= MAX_EXTRA_PAYMENT
     int 1000000
     <=
-    // src/src/contract.py:667-669
+    // src/src/contract.py:647-649
     // assert (
     //     extra_payment <= MAX_EXTRA_PAYMENT
     // ), "extra payment must be less than max extra payment"
     assert // extra payment must be less than max extra payment
-    // src/src/contract.py:672
+    // src/src/contract.py:652
     // self.balance_total >= self.min_bank_amount
     int 0
     // src/src/contract.py:412-413
     // # slot machine state
     // self.balance_total = UInt64()
     byte "balance_total"
-    // src/src/contract.py:672
+    // src/src/contract.py:652
     // self.balance_total >= self.min_bank_amount
     app_global_get_ex
     assert // check self.balance_total exists
@@ -1437,18 +1444,18 @@ _spin:
     // src/src/contract.py:418
     // self.min_bank_amount = UInt64(MIN_BANK_AMOUNT)  # 350,000 VOI
     byte "min_bank_amount"
-    // src/src/contract.py:672
+    // src/src/contract.py:652
     // self.balance_total >= self.min_bank_amount
     app_global_get_ex
     assert // check self.min_bank_amount exists
     >=
-    // src/src/contract.py:670-673
+    // src/src/contract.py:650-653
     // # lock spin if balance total is less than min bank amount
     // assert (
     //     self.balance_total >= self.min_bank_amount
     // ), "balance total must be greater than min bank amount"
     assert // balance total must be greater than min bank amount
-    // src/src/contract.py:674-676
+    // src/src/contract.py:654-656
     // # Update balance tracking
     // #   Add bet amount to total balance
     // self.balance_total += bet_amount
@@ -1457,7 +1464,7 @@ _spin:
     // # slot machine state
     // self.balance_total = UInt64()
     byte "balance_total"
-    // src/src/contract.py:674-676
+    // src/src/contract.py:654-656
     // # Update balance tracking
     // #   Add bet amount to total balance
     // self.balance_total += bet_amount
@@ -1469,19 +1476,19 @@ _spin:
     // # slot machine state
     // self.balance_total = UInt64()
     byte "balance_total"
-    // src/src/contract.py:674-676
+    // src/src/contract.py:654-656
     // # Update balance tracking
     // #   Add bet amount to total balance
     // self.balance_total += bet_amount
     swap
     app_global_put
-    // src/src/contract.py:677
+    // src/src/contract.py:657
     // self.balance_available += bet_amount  # Add bet amount to available first
     int 0
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:677
+    // src/src/contract.py:657
     // self.balance_available += bet_amount  # Add bet amount to available first
     app_global_get_ex
     assert // check self.balance_available exists
@@ -1490,22 +1497,22 @@ _spin:
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:677
+    // src/src/contract.py:657
     // self.balance_available += bet_amount  # Add bet amount to available first
     swap
     app_global_put
-    // src/src/contract.py:678
+    // src/src/contract.py:658
     // max_possible_payout = bet_amount * UInt64(MAX_PAYOUT_MULTIPLIER)
     frame_dig -2
     int 100
     *
-    // src/src/contract.py:679
+    // src/src/contract.py:659
     // self.balance_locked += max_possible_payout
     int 0
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:679
+    // src/src/contract.py:659
     // self.balance_locked += max_possible_payout
     app_global_get_ex
     assert // check self.balance_locked exists
@@ -1514,35 +1521,35 @@ _spin:
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:679
+    // src/src/contract.py:659
     // self.balance_locked += max_possible_payout
     swap
     app_global_put
-    // src/src/contract.py:682
+    // src/src/contract.py:662
     // self.balance_available >= max_possible_payout
     int 0
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:682
+    // src/src/contract.py:662
     // self.balance_available >= max_possible_payout
     app_global_get_ex
     assert // check self.balance_available exists
     dig 1
     >=
-    // src/src/contract.py:680-683
+    // src/src/contract.py:660-663
     // # prevent underflow, impossible because it would err with result would be negative but good to have
     // assert (
     //     self.balance_available >= max_possible_payout
     // ), "balance available must be greater than max possible payout"
     assert // balance available must be greater than max possible payout
-    // src/src/contract.py:684
+    // src/src/contract.py:664
     // self.balance_available -= max_possible_payout
     int 0
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:684
+    // src/src/contract.py:664
     // self.balance_available -= max_possible_payout
     app_global_get_ex
     assert // check self.balance_available exists
@@ -1551,22 +1558,22 @@ _spin:
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:684
+    // src/src/contract.py:664
     // self.balance_available -= max_possible_payout
     swap
     app_global_put
-    // src/src/contract.py:685-686
+    // src/src/contract.py:665-666
     // # Create bet
     // round = Global.round
     global Round
-    // src/src/contract.py:687
+    // src/src/contract.py:667
     // bet_key = self._get_bet_key(Txn.sender, bet_amount, round, index)
     txn Sender
     frame_dig -2
     dig 2
     frame_dig -1
     callsub _get_bet_key
-    // src/src/contract.py:420-688
+    // src/src/contract.py:420-668
     //     self.bet = BoxMap(Bytes, Bet, key_prefix="")
     // 
     // # guard methods
@@ -1772,26 +1779,6 @@ _spin:
     //     close_offline_on_delete(self.upgrader)
     // 
     // # slot machine methods
-    // 
-    // # @arc4.abimethod
-    // # def spin(
-    // #     self,
-    // #     bet_amount: arc4.UInt64,
-    // #     index: arc4.UInt64,
-    // # ) -> Bytes56:
-    // #     """
-    // #     Spin the slot machine. Outcome is determined by the seed
-    // #     of future round.
-    // 
-    // #     Args:
-    // #         bet (uint): The player's wager.
-    // #         index (uint): Player's choice of index.
-    // 
-    // #     Returns:
-    // #         r (uint): The round number of the spin.
-    // #     """
-    // #     return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
-    // 
     // # override
     // @subroutine
     // def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
@@ -1840,40 +1827,40 @@ _spin:
     box_len
     bury 1
     !
-    // src/src/contract.py:688
+    // src/src/contract.py:668
     // assert bet_key not in self.bet, "bet already exists"
     assert // bet already exists
-    // src/src/contract.py:689
+    // src/src/contract.py:669
     // claim_round = round + ROUND_FUTURE_DELTA
     dig 1
     int 1
     +
     swap
-    // src/src/contract.py:691
+    // src/src/contract.py:671
     // who=arc4.Address(Txn.sender),
     txn Sender
     cover 2
-    // src/src/contract.py:692
+    // src/src/contract.py:672
     // amount=arc4.UInt64(bet_amount),
     frame_dig -2
     itob
     swap
-    // src/src/contract.py:693
+    // src/src/contract.py:673
     // confirmed_round=arc4.UInt64(round),
     uncover 4
     itob
     cover 2
-    // src/src/contract.py:694
+    // src/src/contract.py:674
     // index=arc4.UInt64(index),
     frame_dig -1
     itob
     cover 4
-    // src/src/contract.py:695
+    // src/src/contract.py:675
     // claim_round=arc4.UInt64(claim_round),
     uncover 3
     itob
     cover 4
-    // src/src/contract.py:690-696
+    // src/src/contract.py:670-676
     // self.bet[bet_key] = Bet(
     //     who=arc4.Address(Txn.sender),
     //     amount=arc4.UInt64(bet_amount),
@@ -1893,10 +1880,10 @@ _spin:
     dig 1
     swap
     box_put
-    // src/src/contract.py:699
+    // src/src/contract.py:679
     // who=arc4.Address(Txn.sender),
     txn Sender
-    // src/src/contract.py:698-704
+    // src/src/contract.py:678-684
     // BetPlaced(
     //     who=arc4.Address(Txn.sender),
     //     amount=arc4.UInt64(bet_amount),
@@ -1912,7 +1899,7 @@ _spin:
     concat
     uncover 2
     concat
-    // src/src/contract.py:697-705
+    // src/src/contract.py:677-685
     // arc4.emit(
     //     BetPlaced(
     //         who=arc4.Address(Txn.sender),
@@ -1926,7 +1913,7 @@ _spin:
     swap
     concat
     log
-    // src/src/contract.py:706
+    // src/src/contract.py:686
     // return bet_key
     retsub
 
@@ -1947,7 +1934,7 @@ claim:
 
 // contract.SlotMachine._claim(bet_key: bytes) -> uint64:
 _claim:
-    // src/src/contract.py:708-710
+    // src/src/contract.py:688-690
     // # override
     // @subroutine
     // def _claim(self, bet_key: Bytes) -> UInt64:
@@ -1955,7 +1942,7 @@ _claim:
     int 0
     dup
     byte ""
-    // src/src/contract.py:420-719
+    // src/src/contract.py:420-699
     //     self.bet = BoxMap(Bytes, Bet, key_prefix="")
     // 
     // # guard methods
@@ -2161,26 +2148,6 @@ _claim:
     //     close_offline_on_delete(self.upgrader)
     // 
     // # slot machine methods
-    // 
-    // # @arc4.abimethod
-    // # def spin(
-    // #     self,
-    // #     bet_amount: arc4.UInt64,
-    // #     index: arc4.UInt64,
-    // # ) -> Bytes56:
-    // #     """
-    // #     Spin the slot machine. Outcome is determined by the seed
-    // #     of future round.
-    // 
-    // #     Args:
-    // #         bet (uint): The player's wager.
-    // #         index (uint): Player's choice of index.
-    // 
-    // #     Returns:
-    // #         r (uint): The round number of the spin.
-    // #     """
-    // #     return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
-    // 
     // # override
     // @subroutine
     // def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
@@ -2259,10 +2226,10 @@ _claim:
     frame_dig -1
     box_len
     bury 1
-    // src/src/contract.py:719
+    // src/src/contract.py:699
     // assert bet_key in self.bet, "bet not found"
     assert // bet not found
-    // src/src/contract.py:720
+    // src/src/contract.py:700
     // bet = self.bet[bet_key].copy()
     frame_dig -1
     box_get
@@ -2270,7 +2237,7 @@ _claim:
     dup
     uncover 2
     assert // check self.bet entry exists
-    // src/src/contract.py:721-723
+    // src/src/contract.py:701-703
     // # if round is greater than claim_round + MAX_CLAIM_ROUND_DELTA, the bet is expired
     // # and we can return the box cost to the sender
     // if Global.round > bet.claim_round.native + MAX_CLAIM_ROUND_DELTA:
@@ -2286,12 +2253,12 @@ _claim:
     +
     >
     bz _claim_else_body@3
-    // src/src/contract.py:724
+    // src/src/contract.py:704
     // del self.bet[bet_key]
     frame_dig -1
     box_del
     pop
-    // src/src/contract.py:725-727
+    // src/src/contract.py:705-707
     // # Update balance tracking
     // #   Release locked balance and adjust available balance
     // max_possible_payout = bet.amount.native * UInt64(MAX_PAYOUT_MULTIPLIER)
@@ -2302,13 +2269,13 @@ _claim:
     btoi
     int 100
     *
-    // src/src/contract.py:728
+    // src/src/contract.py:708
     // self.balance_locked -= max_possible_payout
     int 0
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:728
+    // src/src/contract.py:708
     // self.balance_locked -= max_possible_payout
     app_global_get_ex
     assert // check self.balance_locked exists
@@ -2317,17 +2284,17 @@ _claim:
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:728
+    // src/src/contract.py:708
     // self.balance_locked -= max_possible_payout
     swap
     app_global_put
-    // src/src/contract.py:729
+    // src/src/contract.py:709
     // self.balance_available += max_possible_payout
     int 0
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:729
+    // src/src/contract.py:709
     // self.balance_available += max_possible_payout
     app_global_get_ex
     assert // check self.balance_available exists
@@ -2335,11 +2302,11 @@ _claim:
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:729
+    // src/src/contract.py:709
     // self.balance_available += max_possible_payout
     swap
     app_global_put
-    // src/src/contract.py:730
+    // src/src/contract.py:710
     // itxn.Payment(receiver=Txn.sender, amount=BOX_COST_BET).submit()
     itxn_begin
     txn Sender
@@ -2351,22 +2318,22 @@ _claim:
     int 0
     itxn_field Fee
     itxn_submit
-    // src/src/contract.py:733
+    // src/src/contract.py:713
     // who=bet.who,
     dig 1
     extract 0 32 // on error: Index access is out of bounds
     swap
-    // src/src/contract.py:735
+    // src/src/contract.py:715
     // confirmed_round=bet.confirmed_round,
     dig 2
     extract 40 8 // on error: Index access is out of bounds
     cover 2
-    // src/src/contract.py:736
+    // src/src/contract.py:716
     // index=bet.index,
     uncover 3
     extract 48 8 // on error: Index access is out of bounds
     cover 2
-    // src/src/contract.py:732-739
+    // src/src/contract.py:712-719
     // BetClaimed(
     //     who=bet.who,
     //     amount=bet.amount,
@@ -2382,10 +2349,10 @@ _claim:
     concat
     frame_dig 4
     concat
-    // src/src/contract.py:738
+    // src/src/contract.py:718
     // payout=arc4.UInt64(0),
     byte 0x0000000000000000
-    // src/src/contract.py:732-739
+    // src/src/contract.py:712-719
     // BetClaimed(
     //     who=bet.who,
     //     amount=bet.amount,
@@ -2395,7 +2362,7 @@ _claim:
     //     payout=arc4.UInt64(0),
     // )
     concat
-    // src/src/contract.py:731-740
+    // src/src/contract.py:711-720
     // arc4.emit(
     //     BetClaimed(
     //         who=bet.who,
@@ -2410,28 +2377,28 @@ _claim:
     swap
     concat
     log
-    // src/src/contract.py:741
+    // src/src/contract.py:721
     // return UInt64(0)
     int 0
     frame_bury 0
     retsub
 
 _claim_else_body@3:
-    // src/src/contract.py:745-746
+    // src/src/contract.py:725-726
     // # calculate r from block seed and bet key
     // combined = self._get_block_seed(bet.claim_round.native) + bet_key
     frame_dig 5
     callsub _get_block_seed
     frame_dig -1
     concat
-    // src/src/contract.py:747
+    // src/src/contract.py:727
     // hashed = op.sha256(combined)
     sha256
-    // src/src/contract.py:750
+    // src/src/contract.py:730
     // arc4.UInt256.from_bytes(hashed).native % BigUInt(1_000_000_000)
     byte 0x3b9aca00
     b%
-    // src/src/contract.py:749-751
+    // src/src/contract.py:729-731
     // arc4.UInt256(
     //     arc4.UInt256.from_bytes(hashed).native % BigUInt(1_000_000_000)
     // ).bytes[-8:]
@@ -2455,19 +2422,19 @@ _claim_else_body@3:
     dig 1
     swap
     -
-    // src/src/contract.py:748-752
+    // src/src/contract.py:728-732
     // r = arc4.UInt64.from_bytes(
     //     arc4.UInt256(
     //         arc4.UInt256.from_bytes(hashed).native % BigUInt(1_000_000_000)
     //     ).bytes[-8:]
     // )
     swap
-    // src/src/contract.py:749-751
+    // src/src/contract.py:729-731
     // arc4.UInt256(
     //     arc4.UInt256.from_bytes(hashed).native % BigUInt(1_000_000_000)
     // ).bytes[-8:]
     substring3
-    // src/src/contract.py:753-763
+    // src/src/contract.py:733-743
     // #########################################################
     // # get payout internal if subclass of SlotMachinePayoutModel
     // # otherwise call model to get payout
@@ -2480,24 +2447,24 @@ _claim_else_body@3:
     //     app_id=Application(self.payout_model),
     // )
     itxn_begin
-    // src/src/contract.py:760
+    // src/src/contract.py:740
     // bet.amount,
     frame_dig 3
     extract 32 8 // on error: Index access is out of bounds
     dup
     frame_bury 1
-    // src/src/contract.py:762
+    // src/src/contract.py:742
     // app_id=Application(self.payout_model),
     int 0
     // src/src/contract.py:419
     // self.payout_model = UInt64()  # app id of payout model
     byte "payout_model"
-    // src/src/contract.py:762
+    // src/src/contract.py:742
     // app_id=Application(self.payout_model),
     app_global_get_ex
     assert // check self.payout_model exists
     itxn_field ApplicationID
-    // src/src/contract.py:753-763
+    // src/src/contract.py:733-743
     // #########################################################
     // # get payout internal if subclass of SlotMachinePayoutModel
     // # otherwise call model to get payout
@@ -2530,7 +2497,7 @@ _claim_else_body@3:
     byte 0x151f7c75
     ==
     assert // ARC4 prefix is valid
-    // src/src/contract.py:764-767
+    // src/src/contract.py:744-747
     // #########################################################
     // # Update balance tracking
     // #   Release locked balance and adjust available balance
@@ -2538,13 +2505,13 @@ _claim_else_body@3:
     btoi
     int 100
     *
-    // src/src/contract.py:768
+    // src/src/contract.py:748
     // self.balance_locked -= max_possible_payout
     int 0
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:768
+    // src/src/contract.py:748
     // self.balance_locked -= max_possible_payout
     app_global_get_ex
     assert // check self.balance_locked exists
@@ -2553,21 +2520,21 @@ _claim_else_body@3:
     // src/src/contract.py:415
     // self.balance_locked = UInt64()
     byte "balance_locked"
-    // src/src/contract.py:768
+    // src/src/contract.py:748
     // self.balance_locked -= max_possible_payout
     swap
     app_global_put
-    // src/src/contract.py:769
+    // src/src/contract.py:749
     // self.balance_available += (
     int 0
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:769
+    // src/src/contract.py:749
     // self.balance_available += (
     app_global_get_ex
     assert // check self.balance_available exists
-    // src/src/contract.py:770
+    // src/src/contract.py:750
     // max_possible_payout - payout.native
     dig 2
     btoi
@@ -2576,7 +2543,7 @@ _claim_else_body@3:
     uncover 2
     dig 1
     -
-    // src/src/contract.py:769-771
+    // src/src/contract.py:749-751
     // self.balance_available += (
     //     max_possible_payout - payout.native
     // )  # Release locked funds minus payout
@@ -2585,20 +2552,20 @@ _claim_else_body@3:
     // src/src/contract.py:414
     // self.balance_available = UInt64()
     byte "balance_available"
-    // src/src/contract.py:769-771
+    // src/src/contract.py:749-751
     // self.balance_available += (
     //     max_possible_payout - payout.native
     // )  # Release locked funds minus payout
     swap
     app_global_put
-    // src/src/contract.py:772
+    // src/src/contract.py:752
     // self.balance_total -= payout.native  # Reduce total balance by payout amount
     int 0
     // src/src/contract.py:412-413
     // # slot machine state
     // self.balance_total = UInt64()
     byte "balance_total"
-    // src/src/contract.py:772
+    // src/src/contract.py:752
     // self.balance_total -= payout.native  # Reduce total balance by payout amount
     app_global_get_ex
     assert // check self.balance_total exists
@@ -2608,16 +2575,16 @@ _claim_else_body@3:
     // # slot machine state
     // self.balance_total = UInt64()
     byte "balance_total"
-    // src/src/contract.py:772
+    // src/src/contract.py:752
     // self.balance_total -= payout.native  # Reduce total balance by payout amount
     swap
     app_global_put
-    // src/src/contract.py:773
+    // src/src/contract.py:753
     // if payout > 0:
     byte 0x0000000000000000
     b>
     bz _claim_after_if_else@7
-    // src/src/contract.py:774
+    // src/src/contract.py:754
     // itxn.Payment(receiver=bet.who.native, amount=payout.native).submit()
     itxn_begin
     frame_dig 3
@@ -2632,12 +2599,12 @@ _claim_else_body@3:
     itxn_submit
 
 _claim_after_if_else@7:
-    // src/src/contract.py:775
+    // src/src/contract.py:755
     // del self.bet[bet_key]
     frame_dig -1
     box_del
     pop
-    // src/src/contract.py:776
+    // src/src/contract.py:756
     // itxn.Payment(receiver=Txn.sender, amount=BOX_COST_BET).submit()
     itxn_begin
     txn Sender
@@ -2649,22 +2616,22 @@ _claim_after_if_else@7:
     int 0
     itxn_field Fee
     itxn_submit
-    // src/src/contract.py:779
+    // src/src/contract.py:759
     // who=bet.who,
     frame_dig 3
     dup
     extract 0 32 // on error: Index access is out of bounds
     swap
-    // src/src/contract.py:781
+    // src/src/contract.py:761
     // confirmed_round=bet.confirmed_round,
     dup
     extract 40 8 // on error: Index access is out of bounds
     cover 2
-    // src/src/contract.py:782
+    // src/src/contract.py:762
     // index=bet.index,
     extract 48 8 // on error: Index access is out of bounds
     cover 2
-    // src/src/contract.py:778-785
+    // src/src/contract.py:758-765
     // BetClaimed(
     //     who=bet.who,
     //     amount=bet.amount,
@@ -2683,7 +2650,7 @@ _claim_after_if_else@7:
     concat
     frame_dig 0
     concat
-    // src/src/contract.py:777-786
+    // src/src/contract.py:757-766
     // arc4.emit(
     //     BetClaimed(
     //         who=bet.who,
@@ -2698,7 +2665,7 @@ _claim_after_if_else@7:
     swap
     concat
     log
-    // src/src/contract.py:787
+    // src/src/contract.py:767
     // return payout.native
     frame_dig 2
     frame_bury 0
@@ -2729,6 +2696,51 @@ _get_block_seed:
     -
     swap
     substring3
+    retsub
+
+
+// opensubmarine.contracts.access.Ownable.contract.Ownable.transfer(new_owner: bytes) -> void:
+transfer:
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:34-35
+    // @arc4.abimethod
+    // def transfer(self, new_owner: arc4.Address) -> None:
+    proto 1 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:36
+    // assert Txn.sender == self.owner, "must be owner"
+    txn Sender
+    int 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
+    // self.owner = Account()
+    byte "owner"
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:36
+    // assert Txn.sender == self.owner, "must be owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // must be owner
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:37
+    // arc4.emit(OwnershipTransferred(arc4.Address(self.owner), new_owner))
+    int 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
+    // self.owner = Account()
+    byte "owner"
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:37
+    // arc4.emit(OwnershipTransferred(arc4.Address(self.owner), new_owner))
+    app_global_get_ex
+    assert // check self.owner exists
+    frame_dig -1
+    concat
+    method "OwnershipTransferred(address,address)"
+    swap
+    concat
+    log
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
+    // self.owner = Account()
+    byte "owner"
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:38
+    // self.owner = new_owner.native
+    frame_dig -1
+    app_global_put
     retsub
 
 
@@ -3159,11 +3171,11 @@ on_update:
 
 // contract.Deleteable.on_delete() -> void:
 on_delete:
-    // src/src/contract.py:59-60
+    // src/src/contract.py:58-59
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     // def on_delete(self) -> None:  # pragma: no cover
     proto 0 0
-    // src/src/contract.py:61-64
+    // src/src/contract.py:60-63
     // ##########################################
     // # WARNING: This app can be deleted by the creator (Development)
     // ##########################################
@@ -3172,13 +3184,13 @@ on_delete:
     global CreatorAddress
     ==
     assert // must be creator
-    // src/src/contract.py:65
+    // src/src/contract.py:64
     // assert self.deletable == UInt64(1), "not approved"
     int 0
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:65
+    // src/src/contract.py:64
     // assert self.deletable == UInt64(1), "not approved"
     app_global_get_ex
     assert // check self.deletable exists
@@ -3245,7 +3257,7 @@ __init__:
     // self.upgrader = Global.creator_address
     global CreatorAddress
     app_global_put
-    // src/src/contract.py:45
+    // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
     // src/src/contract.py:410-411
