@@ -1,11 +1,11 @@
 #pragma version 10
 
 contract.SlotMachineInterface.approval_program:
-    // src/src/contract.py:309
+    // src/src/contract.py:330
     // class SlotMachineInterface(ARC4Contract):
     txn NumAppArgs
     bz main_bare_routing@9
-    method "spin(uint64,uint64)byte[56]"
+    method "spin(uint64,uint64,uint64)byte[56]"
     method "claim(byte[56])uint64"
     method "get_balance_available()uint64"
     method "get_balance_locked()uint64"
@@ -15,18 +15,19 @@ contract.SlotMachineInterface.approval_program:
     err // reject transaction
 
 main_spin_route@2:
-    // src/src/contract.py:314
+    // src/src/contract.py:335
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:309
+    // src/src/contract.py:330
     // class SlotMachineInterface(ARC4Contract):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:314
+    txna ApplicationArgs 3
+    // src/src/contract.py:335
     // @arc4.abimethod
     callsub spin
     byte 0x151f7c75
@@ -37,17 +38,17 @@ main_spin_route@2:
     return
 
 main_claim_route@3:
-    // src/src/contract.py:346
+    // src/src/contract.py:371
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:309
+    // src/src/contract.py:330
     // class SlotMachineInterface(ARC4Contract):
     txna ApplicationArgs 1
-    // src/src/contract.py:346
+    // src/src/contract.py:371
     // @arc4.abimethod
     callsub claim
     byte 0x151f7c75
@@ -58,7 +59,7 @@ main_claim_route@3:
     return
 
 main_get_balance_available_route@4:
-    // src/src/contract.py:372
+    // src/src/contract.py:397
     // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
@@ -74,7 +75,7 @@ main_get_balance_available_route@4:
     return
 
 main_get_balance_locked_route@5:
-    // src/src/contract.py:379
+    // src/src/contract.py:404
     // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
@@ -90,7 +91,7 @@ main_get_balance_locked_route@5:
     return
 
 main_get_balance_total_route@6:
-    // src/src/contract.py:386
+    // src/src/contract.py:411
     // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
@@ -106,7 +107,7 @@ main_get_balance_total_route@6:
     return
 
 main_bare_routing@9:
-    // src/src/contract.py:309
+    // src/src/contract.py:330
     // class SlotMachineInterface(ARC4Contract):
     txn OnCompletion
     !
@@ -118,29 +119,37 @@ main_bare_routing@9:
     return
 
 
-// contract.SlotMachineInterface.spin(bet_amount: bytes, index: bytes) -> bytes:
+// contract.SlotMachineInterface.spin(bet_amount: bytes, provider_id: bytes, index: bytes) -> bytes:
 spin:
-    // src/src/contract.py:314-315
+    // src/src/contract.py:335-338
     // @arc4.abimethod
-    // def spin(self, bet_amount: arc4.UInt64, index: arc4.UInt64) -> Bytes56:
-    proto 2 1
-    // src/src/contract.py:327
-    // return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
+    // def spin(
+    //     self, bet_amount: arc4.UInt64, provider_id: arc4.UInt64, index: arc4.UInt64
+    // ) -> Bytes56:
+    proto 3 1
+    // src/src/contract.py:351
+    // self._spin(bet_amount.native, provider_id.native, index.native)
+    frame_dig -3
+    btoi
     frame_dig -2
     btoi
     frame_dig -1
     btoi
     callsub _spin
+    // src/src/contract.py:350-352
+    // return Bytes56.from_bytes(
+    //     self._spin(bet_amount.native, provider_id.native, index.native)
+    // )
     retsub
 
 
-// contract.SlotMachineInterface._spin(bet_amount: uint64, index: uint64) -> bytes:
+// contract.SlotMachineInterface._spin(bet_amount: uint64, provider_id: uint64, index: uint64) -> bytes:
 _spin:
-    // src/src/contract.py:329-330
+    // src/src/contract.py:354-355
     // @subroutine
-    // def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
-    proto 2 1
-    // src/src/contract.py:342-344
+    // def _spin(self, bet_amount: UInt64, provider_id: UInt64, index: UInt64) -> Bytes:
+    proto 3 1
+    // src/src/contract.py:367-369
     // return Bytes.from_base64(
     //     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
     // )
@@ -150,11 +159,11 @@ _spin:
 
 // contract.SlotMachineInterface.claim(bet_key: bytes) -> bytes:
 claim:
-    // src/src/contract.py:346-347
+    // src/src/contract.py:371-372
     // @arc4.abimethod
     // def claim(self, bet_key: Bytes56) -> arc4.UInt64:
     proto 1 1
-    // src/src/contract.py:357
+    // src/src/contract.py:382
     // return arc4.UInt64(self._claim(bet_key.bytes))
     frame_dig -1
     callsub _claim
@@ -164,11 +173,11 @@ claim:
 
 // contract.SlotMachineInterface._claim(bet_key: bytes) -> uint64:
 _claim:
-    // src/src/contract.py:359-360
+    // src/src/contract.py:384-385
     // @subroutine
     // def _claim(self, bet_key: Bytes) -> UInt64:
     proto 1 1
-    // src/src/contract.py:370
+    // src/src/contract.py:395
     // return UInt64(0)
     int 0
     retsub
@@ -176,11 +185,11 @@ _claim:
 
 // contract.SlotMachineInterface.get_balance_available() -> bytes:
 get_balance_available:
-    // src/src/contract.py:372-373
+    // src/src/contract.py:397-398
     // @arc4.abimethod(readonly=True)
     // def get_balance_available(self) -> arc4.UInt64:
     proto 0 1
-    // src/src/contract.py:377
+    // src/src/contract.py:402
     // return arc4.UInt64(0)
     byte 0x0000000000000000
     retsub
@@ -188,11 +197,11 @@ get_balance_available:
 
 // contract.SlotMachineInterface.get_balance_locked() -> bytes:
 get_balance_locked:
-    // src/src/contract.py:379-380
+    // src/src/contract.py:404-405
     // @arc4.abimethod(readonly=True)
     // def get_balance_locked(self) -> arc4.UInt64:
     proto 0 1
-    // src/src/contract.py:384
+    // src/src/contract.py:409
     // return arc4.UInt64(0)
     byte 0x0000000000000000
     retsub
@@ -200,11 +209,11 @@ get_balance_locked:
 
 // contract.SlotMachineInterface.get_balance_total() -> bytes:
 get_balance_total:
-    // src/src/contract.py:386-387
+    // src/src/contract.py:411-412
     // @arc4.abimethod(readonly=True)
     // def get_balance_total(self) -> arc4.UInt64:
     proto 0 1
-    // src/src/contract.py:391
+    // src/src/contract.py:416
     // return arc4.UInt64(0)
     byte 0x0000000000000000
     retsub

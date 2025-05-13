@@ -3,7 +3,7 @@
   "desc": "\n    A simple slot machine smart contract\n    ",
   "methods": [
     {
-      "name": "post_upgrade",
+      "name": "post_update",
       "args": [],
       "readonly": false,
       "returns": {
@@ -208,6 +208,10 @@
         {
           "type": "uint64",
           "name": "bet_amount"
+        },
+        {
+          "type": "uint64",
+          "name": "provider_id"
         },
         {
           "type": "uint64",

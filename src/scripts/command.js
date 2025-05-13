@@ -27,13 +27,15 @@ export const sks = {
     player2: sk3,
 };
 // DEVNET
-const ALGO_SERVER = "http://localhost";
-const ALGO_INDEXER_SERVER = "http://localhost";
-const ALGO_PORT = 4001;
-const ALGO_INDEXER_PORT = 8980;
+// const ALGO_SERVER = "http://localhost";
+// const ALGO_INDEXER_SERVER = "http://localhost";
+// const ALGO_PORT = 4001;
+// const ALGO_INDEXER_PORT = 8980;
 // TESTNET
-// const ALGO_SERVER = "https://testnet-api.voi.nodely.dev";
-// const ALGO_INDEXER_SERVER = "https://testnet-idx.voi.nodely.dev";
+const ALGO_SERVER = "https://testnet-api.voi.nodely.dev";
+const ALGO_INDEXER_SERVER = "https://testnet-idx.voi.nodely.dev";
+const ALGO_PORT = 443;
+const ALGO_INDEXER_PORT = 443;
 // MAINNET
 // const ALGO_SERVER = "https://mainnet-api.voi.nodely.dev";
 // const ALGO_INDEXER_SERVER = "https://mainnet-idx.voi.nodely.dev";
@@ -41,18 +43,24 @@ const ALGO_INDEXER_PORT = 8980;
 // const ALGO_INDEXER_PORT = 443;
 const algodServerURL = process.env.ALGOD_SERVER || ALGO_SERVER;
 const algodServerPort = process.env.ALGOD_PORT || ALGO_PORT;
-export const algodClient = new algosdk.Algodv2(process.env.ALGOD_TOKEN ||
-    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", algodServerURL, algodServerPort);
+const algodToken = "";
+export const algodClient = new algosdk.Algodv2(algodToken, algodServerURL, algodServerPort);
 const indexerServerURL = process.env.INDEXER_SERVER || ALGO_INDEXER_SERVER;
 const indexerServerPort = process.env.INDEXER_PORT || ALGO_INDEXER_PORT;
 export const indexerClient = new algosdk.Indexer(process.env.INDEXER_TOKEN || "", indexerServerURL, indexerServerPort);
-console.log(addressses, algodServerURL);
+console.log(addressses);
 const signSendAndConfirm = async (txns, sk) => {
     const stxns = txns
         .map((t) => new Uint8Array(Buffer.from(t, "base64")))
-        .map(algosdk.decodeUnsignedTransaction)
+        .map((t) => {
+        const txn = algosdk.decodeUnsignedTransaction(t);
+        return txn;
+    })
         .map((t) => algosdk.signTransaction(t, sk));
-    await algodClient.sendRawTransaction(stxns.map((txn) => txn.blob)).do();
+    const res = await algodClient
+        .sendRawTransaction(stxns.map((txn) => txn.blob))
+        .do();
+    console.log(res);
     return await Promise.all(stxns.map((res) => algosdk.waitForConfirmation(algodClient, res.txID, 4)));
 };
 export const invalidSpin = new Array(56).fill(0);
@@ -169,6 +177,7 @@ export const deploy = async (options) => {
             onUpdate: "update",
             onSchemaBreak: "fail",
         });
+        appClient.postUpdate({});
         return { appId: app.appId, appClient: appClient };
     }
 };
@@ -184,7 +193,6 @@ program
         console.log("Failed to deploy contract");
         return;
     }
-    console.log(apid);
 });
 export const postUpdate = async (options) => {
     const addr = options.sender || addressses.deployer;
@@ -320,25 +328,50 @@ program
     }
 });
 export const spin = async (options) => {
-    const addr = options.sender || addressses.deployer;
-    const sk = options.sk || sks.deployer;
-    const acc = { addr, sk };
-    const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
-    ci.setEnableParamsLastRoundMod(true);
-    ci.setEnableRawBytes(true);
-    ci.setPaymentAmount(options.amount + BOX_COST_BET);
-    const spinR = await ci.spin(options.amount, options?.index || 0);
-    if (options.debug) {
-        console.log(spinR);
-    }
-    if (spinR.success) {
-        if (!options.simulate) {
-            await signSendAndConfirm(spinR.txns, sk);
+    try {
+        const addr = options.sender || addressses.deployer;
+        const sk = options.sk || sks.deployer;
+        const acc = { addr, sk };
+        const ci = new CONTRACT(options.appId, algodClient, indexerClient, makeABI(SlotMachineSpec), acc);
+        ci.setEnableRawBytes(true);
+        ci.setPaymentAmount(options.amount + BOX_COST_BET);
+        const spinR = await ci.spin(options.amount, // bet amount
+        options.providerId || 0, // provider id
+        options?.index || 0 // index
+        );
+        if (options.debug) {
+            console.log(spinR);
         }
-        return spinR.returnValue;
+        if (spinR.success) {
+            if (!options.simulate) {
+                await signSendAndConfirm(spinR.txns, sk);
+            }
+            return spinR.returnValue;
+        }
+        return invalidSpin;
     }
-    return invalidSpin;
+    catch (e) {
+        console.log(e);
+    }
 };
+program
+    .command("spin")
+    .requiredOption("-a, --appId <number>", "Specify app id")
+    .requiredOption("-m, --amount <number>", "Specify amount")
+    .requiredOption("-r, --round <number>", "Specify round")
+    .requiredOption("-i, --index <number>", "Specify index")
+    .option("-s, --sender <string>", "Specify sender")
+    .option("--debug", "Debug the spin", false)
+    .option("--simulate", "Simulate the spin", false)
+    .action(async (options) => {
+    const result = await spin({
+        ...options,
+        appId: Number(options.appId),
+        amount: Number(options.amount),
+        index: Number(options.index),
+    });
+    console.log(result);
+});
 export const getMaxBet = async (options) => {
     const addr = options.sender || addressses.deployer;
     const sk = options.sk || sks.deployer;

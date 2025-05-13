@@ -6,10 +6,11 @@ contract.SlotMachinePayoutModel.approval_program:
     callsub __init__
 
 main_entrypoint@2:
-    // src/src/contract.py:237
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn NumAppArgs
-    bz main_bare_routing@13
+    bz main_bare_routing@14
+    method "post_update()void"
     method "set_payout_model(uint64[6],uint64[6])void"
     method "get_payout_model()(uint64[6],uint64[6])"
     method "get_payout(uint64,uint64)uint64"
@@ -18,29 +19,41 @@ main_entrypoint@2:
     method "grant_upgrader(address)void"
     method "transfer(address)void"
     txna ApplicationArgs 0
-    match main_set_payout_model_route@4 main_get_payout_model_route@5 main_get_payout_route@6 main_set_version_route@7 main_approve_update_route@8 main_grant_upgrader_route@9 main_transfer_route@10
+    match main_post_update_route@4 main_set_payout_model_route@5 main_get_payout_model_route@6 main_get_payout_route@7 main_set_version_route@8 main_approve_update_route@9 main_grant_upgrader_route@10 main_transfer_route@11
     err // reject transaction
 
-main_set_payout_model_route@4:
-    // src/src/contract.py:266
+main_post_update_route@4:
+    // src/src/contract.py:269
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:237
+    callsub post_update
+    int 1
+    return
+
+main_set_payout_model_route@5:
+    // src/src/contract.py:287
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:266
+    // src/src/contract.py:287
     // @arc4.abimethod
     callsub set_payout_model
     int 1
     return
 
-main_get_payout_model_route@5:
-    // src/src/contract.py:285
+main_get_payout_model_route@6:
+    // src/src/contract.py:306
     // @arc4.abimethod(readonly=True)
     txn OnCompletion
     !
@@ -55,19 +68,19 @@ main_get_payout_model_route@5:
     int 1
     return
 
-main_get_payout_route@6:
-    // src/src/contract.py:196
+main_get_payout_route@7:
+    // src/src/contract.py:210
     // @arc4.abimethod
     txn OnCompletion
     !
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:237
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
-    // src/src/contract.py:196
+    // src/src/contract.py:210
     // @arc4.abimethod
     callsub get_payout
     byte 0x151f7c75
@@ -77,7 +90,7 @@ main_get_payout_route@6:
     int 1
     return
 
-main_set_version_route@7:
+main_set_version_route@8:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
     // @arc4.abimethod
     txn OnCompletion
@@ -85,7 +98,7 @@ main_set_version_route@7:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:237
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     txna ApplicationArgs 2
@@ -95,7 +108,7 @@ main_set_version_route@7:
     int 1
     return
 
-main_approve_update_route@8:
+main_approve_update_route@9:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
     txn OnCompletion
@@ -103,7 +116,7 @@ main_approve_update_route@8:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:237
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
@@ -112,7 +125,7 @@ main_approve_update_route@8:
     int 1
     return
 
-main_grant_upgrader_route@9:
+main_grant_upgrader_route@10:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
     txn OnCompletion
@@ -120,7 +133,7 @@ main_grant_upgrader_route@9:
     assert // OnCompletion is NoOp
     txn ApplicationID
     assert // is not creating
-    // src/src/contract.py:237
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txna ApplicationArgs 1
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
@@ -129,7 +142,7 @@ main_grant_upgrader_route@9:
     int 1
     return
 
-main_transfer_route@10:
+main_transfer_route@11:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:22
     // @arc4.abimethod
     txn OnCompletion
@@ -140,15 +153,15 @@ main_transfer_route@10:
     int 1
     return
 
-main_bare_routing@13:
-    // src/src/contract.py:237
+main_bare_routing@14:
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn OnCompletion
-    switch main_create@14 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_on_update@15 main_on_delete@16
+    switch main_create@15 main_reject_bare_on_completion@18 main_reject_bare_on_completion@18 main_reject_bare_on_completion@18 main_on_update@16 main_on_delete@17
     err // reject transaction
 
-main_create@14:
-    // src/src/contract.py:237
+main_create@15:
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     txn ApplicationID
     !
@@ -156,7 +169,7 @@ main_create@14:
     int 1
     return
 
-main_on_update@15:
+main_on_update@16:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:92
     // @arc4.baremethod(allow_actions=["UpdateApplication"])
     txn ApplicationID
@@ -168,7 +181,7 @@ main_on_update@15:
     int 1
     return
 
-main_on_delete@16:
+main_on_delete@17:
     // src/src/contract.py:58
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
@@ -180,15 +193,37 @@ main_on_delete@16:
     int 1
     return
 
-main_reject_bare_on_completion@17:
-    // src/src/contract.py:237
+main_reject_bare_on_completion@18:
+    // src/src/contract.py:251
     // class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Deleteable):
     err // reject transaction
 
 
+// contract.SlotMachinePayoutModel.post_update() -> void:
+post_update:
+    // src/src/contract.py:269-270
+    // @arc4.abimethod
+    // def post_update(self) -> None:
+    proto 0 0
+    // src/src/contract.py:274
+    // assert Txn.sender == self.upgrader, "must be upgrader"
+    txn Sender
+    int 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:34
+    // self.upgrader = Account()
+    byte "upgrader"
+    // src/src/contract.py:274
+    // assert Txn.sender == self.upgrader, "must be upgrader"
+    app_global_get_ex
+    assert // check self.upgrader exists
+    ==
+    assert // must be upgrader
+    retsub
+
+
 // contract.SlotMachinePayoutModel.set_payout_model(multipliers: bytes, probabilities: bytes) -> void:
 set_payout_model:
-    // src/src/contract.py:266-271
+    // src/src/contract.py:287-292
     // @arc4.abimethod
     // def set_payout_model(
     //     self,
@@ -196,48 +231,48 @@ set_payout_model:
     //     probabilities: arc4.StaticArray[arc4.UInt64, typing.Literal[6]],
     // ) -> None:
     proto 2 0
-    // src/src/contract.py:275
+    // src/src/contract.py:296
     // self.only_owner()
     callsub only_owner
-    // src/src/contract.py:276-278
+    // src/src/contract.py:297-299
     // self.payout_model = PayoutModel(
     //     multipliers=multipliers.copy(), probabilities=probabilities.copy()
     // )
     frame_dig -2
     frame_dig -1
     concat
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:276-278
+    // src/src/contract.py:297-299
     // self.payout_model = PayoutModel(
     //     multipliers=multipliers.copy(), probabilities=probabilities.copy()
     // )
     swap
     app_global_put
-    // src/src/contract.py:280
+    // src/src/contract.py:301
     // ModelUpdated(old_model=self.payout_model, new_model=self.payout_model)
     int 0
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:280
+    // src/src/contract.py:301
     // ModelUpdated(old_model=self.payout_model, new_model=self.payout_model)
     app_global_get_ex
     assert // check self.payout_model exists
     int 0
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:280
+    // src/src/contract.py:301
     // ModelUpdated(old_model=self.payout_model, new_model=self.payout_model)
     app_global_get_ex
     assert // check self.payout_model exists
     concat
-    // src/src/contract.py:279-281
+    // src/src/contract.py:300-302
     // arc4.emit(
     //     ModelUpdated(old_model=self.payout_model, new_model=self.payout_model)
     // )
@@ -250,18 +285,18 @@ set_payout_model:
 
 // contract.SlotMachinePayoutModel.only_owner() -> void:
 only_owner:
-    // src/src/contract.py:257-258
+    // src/src/contract.py:278-279
     // @subroutine
     // def only_owner(self) -> None:
     proto 0 0
-    // src/src/contract.py:262
+    // src/src/contract.py:283
     // assert Txn.sender == self.owner, "only owner can call this function"
     txn Sender
     int 0
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
     // self.owner = Account()
     byte "owner"
-    // src/src/contract.py:262
+    // src/src/contract.py:283
     // assert Txn.sender == self.owner, "only owner can call this function"
     app_global_get_ex
     assert // check self.owner exists
@@ -272,18 +307,18 @@ only_owner:
 
 // contract.SlotMachinePayoutModel.get_payout_model() -> bytes:
 get_payout_model:
-    // src/src/contract.py:285-286
+    // src/src/contract.py:306-307
     // @arc4.abimethod(readonly=True)
     // def get_payout_model(self) -> PayoutModel:
     proto 0 1
-    // src/src/contract.py:290
+    // src/src/contract.py:311
     // return self.payout_model
     int 0
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:290
+    // src/src/contract.py:311
     // return self.payout_model
     app_global_get_ex
     assert // check self.payout_model exists
@@ -292,11 +327,11 @@ get_payout_model:
 
 // contract.SlotMachinePayoutModelInterface.get_payout(bet_amount: bytes, r: bytes) -> bytes:
 get_payout:
-    // src/src/contract.py:196-197
+    // src/src/contract.py:210-211
     // @arc4.abimethod
     // def get_payout(self, bet_amount: arc4.UInt64, r: arc4.UInt64) -> arc4.UInt64:
     proto 2 1
-    // src/src/contract.py:201
+    // src/src/contract.py:215
     // return arc4.UInt64(self._calculate_bet_payout(bet_amount.native, r.native))
     frame_dig -2
     btoi
@@ -309,32 +344,32 @@ get_payout:
 
 // contract.SlotMachinePayoutModel._calculate_bet_payout(bet_amount: uint64, r: uint64) -> uint64:
 _calculate_bet_payout:
-    // src/src/contract.py:292-294
+    // src/src/contract.py:313-315
     // # override
     // @subroutine
     // def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
     proto 2 1
     byte ""
     dup
-    // src/src/contract.py:300
+    // src/src/contract.py:321
     // for index in urange(6):
     int 0
 
 _calculate_bet_payout_for_header@1:
-    // src/src/contract.py:300
+    // src/src/contract.py:321
     // for index in urange(6):
     frame_dig 2
     int 6
     <
     bz _calculate_bet_payout_after_for@6
-    // src/src/contract.py:301
+    // src/src/contract.py:322
     // prob = self.payout_model.probabilities[index].native
     int 0
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:301
+    // src/src/contract.py:322
     // prob = self.payout_model.probabilities[index].native
     app_global_get_ex
     assert // check self.payout_model exists
@@ -349,19 +384,19 @@ _calculate_bet_payout_for_header@1:
     btoi
     dup
     frame_bury 1
-    // src/src/contract.py:302
+    // src/src/contract.py:323
     // if r < prob:
     frame_dig -1
     >
     bz _calculate_bet_payout_after_if_else@4
-    // src/src/contract.py:303
+    // src/src/contract.py:324
     // return bet_amount * self.payout_model.multipliers[index].native
     int 0
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     byte "payout_model"
-    // src/src/contract.py:303
+    // src/src/contract.py:324
     // return bet_amount * self.payout_model.multipliers[index].native
     app_global_get_ex
     assert // check self.payout_model exists
@@ -376,13 +411,13 @@ _calculate_bet_payout_for_header@1:
     retsub
 
 _calculate_bet_payout_after_if_else@4:
-    // src/src/contract.py:304
+    // src/src/contract.py:325
     // r -= prob
     frame_dig -1
     frame_dig 1
     -
     frame_bury -1
-    // src/src/contract.py:300
+    // src/src/contract.py:321
     // for index in urange(6):
     frame_dig 2
     int 1
@@ -391,7 +426,7 @@ _calculate_bet_payout_after_if_else@4:
     b _calculate_bet_payout_for_header@1
 
 _calculate_bet_payout_after_for@6:
-    // src/src/contract.py:306
+    // src/src/contract.py:327
     // return UInt64(0)
     int 0
     frame_bury 0
@@ -615,13 +650,13 @@ on_delete:
 
 // contract.SlotMachinePayoutModel.__init__() -> void:
 __init__:
-    // src/src/contract.py:242
+    // src/src/contract.py:256
     // def __init__(self) -> None:
     proto 0 0
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:20
     // self.owner = Account()
     byte "owner"
-    // src/src/contract.py:243-244
+    // src/src/contract.py:257-258
     // # ownable state
     // self.owner = Global.creator_address
     global CreatorAddress
@@ -629,7 +664,7 @@ __init__:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:34
     // self.upgrader = Account()
     byte "upgrader"
-    // src/src/contract.py:245-246
+    // src/src/contract.py:259-260
     // # upgradable state
     // self.upgrader = Global.creator_address
     global CreatorAddress
@@ -637,33 +672,33 @@ __init__:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:31
     // self.contract_version = UInt64()
     byte "contract_version"
-    // src/src/contract.py:247
+    // src/src/contract.py:261
     // self.contract_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:32
     // self.deployment_version = UInt64()
     byte "deployment_version"
-    // src/src/contract.py:248
+    // src/src/contract.py:262
     // self.deployment_version = UInt64()
     int 0
     app_global_put
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:33
     // self.updatable = bool(1)
     byte "updatable"
-    // src/src/contract.py:249
+    // src/src/contract.py:263
     // self.updatable = bool(1)
     int 1
     app_global_put
     // src/src/contract.py:44
     // self.deletable = bool(1)
     byte "deletable"
-    // src/src/contract.py:250-251
+    // src/src/contract.py:264-265
     // # deleteable state
     // self.deletable = bool(1)
     int 1
     app_global_put
-    // src/src/contract.py:252-253
+    // src/src/contract.py:266-267
     // # payout model state
     // self.payout_model = self._initial_payout_model()
     callsub _initial_payout_model
@@ -675,11 +710,11 @@ __init__:
 
 // contract.SlotMachinePayoutModelInterface._initial_payout_model() -> bytes:
 _initial_payout_model:
-    // src/src/contract.py:212-213
+    // src/src/contract.py:226-227
     // @subroutine
     // def _initial_payout_model(self) -> PayoutModel:
     proto 0 1
-    // src/src/contract.py:217-234
+    // src/src/contract.py:231-248
     // return PayoutModel(
     //     multipliers=arc4.StaticArray(
     //         arc4.UInt64(0),

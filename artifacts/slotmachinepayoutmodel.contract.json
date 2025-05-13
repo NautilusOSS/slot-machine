@@ -3,6 +3,15 @@
   "desc": "\n    A simple slot machine payout model\n    ",
   "methods": [
     {
+      "name": "post_update",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Post update"
+    },
+    {
       "name": "set_payout_model",
       "args": [
         {

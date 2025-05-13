@@ -9,17 +9,42 @@ main_entrypoint@2:
     // src/src/contract.py:95
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn NumAppArgs
-    bz main_bare_routing@11
+    bz main_bare_routing@13
+    method "post_update()void"
+    method "nop()void"
     method "touch()void"
     method "set_version(uint64,uint64)void"
     method "approve_update(bool)void"
     method "grant_upgrader(address)void"
     method "transfer(address)void"
     txna ApplicationArgs 0
-    match main_touch_route@4 main_set_version_route@5 main_approve_update_route@6 main_grant_upgrader_route@7 main_transfer_route@8
+    match main_post_update_route@4 main_nop_route@5 main_touch_route@6 main_set_version_route@7 main_approve_update_route@8 main_grant_upgrader_route@9 main_transfer_route@10
     err // reject transaction
 
-main_touch_route@4:
+main_post_update_route@4:
+    // src/src/contract.py:111
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    callsub post_update
+    int 1
+    return
+
+main_nop_route@5:
+    // src/src/contract.py:118
+    // @arc4.abimethod
+    txn OnCompletion
+    !
+    assert // OnCompletion is NoOp
+    txn ApplicationID
+    assert // is not creating
+    int 1
+    return
+
+main_touch_route@6:
     // src/src/contract.py:73
     // @arc4.abimethod
     txn OnCompletion
@@ -30,7 +55,7 @@ main_touch_route@4:
     int 1
     return
 
-main_set_version_route@5:
+main_set_version_route@7:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:83
     // @arc4.abimethod
     txn OnCompletion
@@ -48,7 +73,7 @@ main_set_version_route@5:
     int 1
     return
 
-main_approve_update_route@6:
+main_approve_update_route@8:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:101
     // @arc4.abimethod
     txn OnCompletion
@@ -65,7 +90,7 @@ main_approve_update_route@6:
     int 1
     return
 
-main_grant_upgrader_route@7:
+main_grant_upgrader_route@9:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:107
     // @arc4.abimethod
     txn OnCompletion
@@ -82,7 +107,7 @@ main_grant_upgrader_route@7:
     int 1
     return
 
-main_transfer_route@8:
+main_transfer_route@10:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/access/Ownable/contract.py:22
     // @arc4.abimethod
     txn OnCompletion
@@ -93,14 +118,14 @@ main_transfer_route@8:
     int 1
     return
 
-main_bare_routing@11:
+main_bare_routing@13:
     // src/src/contract.py:95
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn OnCompletion
-    switch main_create@12 main_reject_bare_on_completion@15 main_reject_bare_on_completion@15 main_reject_bare_on_completion@15 main_on_update@13 main_on_delete@14
+    switch main_create@14 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_reject_bare_on_completion@17 main_on_update@15 main_on_delete@16
     err // reject transaction
 
-main_create@12:
+main_create@14:
     // src/src/contract.py:95
     // class Beacon(Touchable, Upgradeable, Deleteable):
     txn ApplicationID
@@ -109,7 +134,7 @@ main_create@12:
     int 1
     return
 
-main_on_update@13:
+main_on_update@15:
     // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:92
     // @arc4.baremethod(allow_actions=["UpdateApplication"])
     txn ApplicationID
@@ -121,7 +146,7 @@ main_on_update@13:
     int 1
     return
 
-main_on_delete@14:
+main_on_delete@16:
     // src/src/contract.py:58
     // @arc4.baremethod(allow_actions=["DeleteApplication"])
     txn ApplicationID
@@ -133,10 +158,32 @@ main_on_delete@14:
     int 1
     return
 
-main_reject_bare_on_completion@15:
+main_reject_bare_on_completion@17:
     // src/src/contract.py:95
     // class Beacon(Touchable, Upgradeable, Deleteable):
     err // reject transaction
+
+
+// contract.Beacon.post_update() -> void:
+post_update:
+    // src/src/contract.py:111-112
+    // @arc4.abimethod
+    // def post_update(self) -> None:
+    proto 0 0
+    // src/src/contract.py:116
+    // assert Txn.sender == self.upgrader, "must be upgrader"
+    txn Sender
+    int 0
+    // usr/local/lib/python3.12/site-packages/opensubmarine/contracts/update/Upgradeable/contract.py:34
+    // self.upgrader = Account()
+    byte "upgrader"
+    // src/src/contract.py:116
+    // assert Txn.sender == self.upgrader, "must be upgrader"
+    app_global_get_ex
+    assert // check self.upgrader exists
+    ==
+    assert // must be upgrader
+    retsub
 
 
 // opensubmarine.contracts.update.Upgradeable.contract.Upgradeable.set_version(contract_version: bytes, deployment_version: bytes) -> void:

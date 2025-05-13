@@ -3,6 +3,24 @@
   "desc": "\n    A simple beacon contract\n    ",
   "methods": [
     {
+      "name": "post_update",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "Post update"
+    },
+    {
+      "name": "nop",
+      "args": [],
+      "readonly": false,
+      "returns": {
+        "type": "void"
+      },
+      "desc": "No operation"
+    },
+    {
       "name": "touch",
       "args": [],
       "readonly": false,

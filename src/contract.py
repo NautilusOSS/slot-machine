@@ -108,6 +108,20 @@ class Beacon(Touchable, Upgradeable, Deleteable):
         # deleteable state
         self.deletable = bool(1)
 
+    @arc4.abimethod
+    def post_update(self) -> None:
+        """
+        Post update
+        """
+        assert Txn.sender == self.upgrader, "must be upgrader"
+
+    @arc4.abimethod
+    def nop(self) -> None:
+        """
+        No operation
+        """
+        pass
+
 
 # Storage
 
@@ -252,6 +266,13 @@ class SlotMachinePayoutModel(SlotMachinePayoutModelInterface, Upgradeable, Delet
         # payout model state
         self.payout_model = self._initial_payout_model()
 
+    @arc4.abimethod
+    def post_update(self) -> None:
+        """
+        Post update
+        """
+        assert Txn.sender == self.upgrader, "must be upgrader"
+
     # guard methods
 
     @subroutine
@@ -312,7 +333,9 @@ class SlotMachineInterface(ARC4Contract):
     """
 
     @arc4.abimethod
-    def spin(self, bet_amount: arc4.UInt64, index: arc4.UInt64) -> Bytes56:
+    def spin(
+        self, bet_amount: arc4.UInt64, provider_id: arc4.UInt64, index: arc4.UInt64
+    ) -> Bytes56:
         """
         Spin the slot machine. Outcome is determined by the seed
         of future round.
@@ -324,10 +347,12 @@ class SlotMachineInterface(ARC4Contract):
         Returns:
             r (uint): The round number of the spin.
         """
-        return Bytes56.from_bytes(self._spin(bet_amount.native, index.native))
+        return Bytes56.from_bytes(
+            self._spin(bet_amount.native, provider_id.native, index.native)
+        )
 
     @subroutine
-    def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
+    def _spin(self, bet_amount: UInt64, provider_id: UInt64, index: UInt64) -> Bytes:
         """
         Spin the slot machine. Outcome is determined by the seed
         of future round.
@@ -431,13 +456,11 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
     # upgradeable methods
 
     @arc4.abimethod
-    def post_upgrade(self) -> None:
+    def post_update(self) -> None:
         """
         Called after upgrade
         """
         assert Txn.sender == self.upgrader, "must be upgrader"
-        self.contract_version = UInt64()
-        self.deployment_version = UInt64()
 
     # owner methods
 
@@ -582,6 +605,41 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
         """
         return arc4.UInt64(self.balance_total)
 
+    # embedded payout model
+
+    @subroutine
+    def _calculate_bet_payout(self, bet_amount: UInt64, r: UInt64) -> UInt64:
+        """
+        Simulate a single slot payout using weighted random thresholds.
+        Random number r is in [0, 1_000_000_000). Uses if/then/else-style logic
+        directly subtracting each probability from r until a match is found.
+        """
+        payout_model = PayoutModel(
+            multipliers=arc4.StaticArray[arc4.UInt64, typing.Literal[6]](
+                arc4.UInt64(100),
+                arc4.UInt64(50),
+                arc4.UInt64(20),
+                arc4.UInt64(10),
+                arc4.UInt64(5),
+                arc4.UInt64(2),
+            ),
+            probabilities=arc4.StaticArray[arc4.UInt64, typing.Literal[6]](
+                arc4.UInt64(82758),
+                arc4.UInt64(1655172),
+                arc4.UInt64(8275862),
+                arc4.UInt64(16551724),
+                arc4.UInt64(41379310),
+                arc4.UInt64(165517241),
+            ),
+        )
+        for index in urange(6):
+            prob = payout_model.probabilities[index].native
+            if r < prob:
+                return bet_amount * payout_model.multipliers[index].native
+            r -= prob
+
+        return UInt64(0)
+
     # bet key utils
 
     @arc4.abimethod(readonly=True)
@@ -624,7 +682,7 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
     # slot machine methods
     # override
     @subroutine
-    def _spin(self, bet_amount: UInt64, index: UInt64) -> Bytes:
+    def _spin(self, bet_amount: UInt64, provider_id: UInt64, index: UInt64) -> Bytes:
         """
         Spin the slot machine. Outcome is determined by the seed
         of future round.
@@ -663,14 +721,14 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
         ), "balance available must be greater than max possible payout"
         self.balance_available -= max_possible_payout
         # Create bet
-        round = Global.round
-        bet_key = self._get_bet_key(Txn.sender, bet_amount, round, index)
+        confirmed_round = Global.round
+        bet_key = self._get_bet_key(Txn.sender, bet_amount, provider_id, index)
         assert bet_key not in self.bet, "bet already exists"
-        claim_round = round + ROUND_FUTURE_DELTA
+        claim_round = confirmed_round + ROUND_FUTURE_DELTA
         self.bet[bet_key] = Bet(
             who=arc4.Address(Txn.sender),
             amount=arc4.UInt64(bet_amount),
-            confirmed_round=arc4.UInt64(round),
+            confirmed_round=arc4.UInt64(confirmed_round),
             index=arc4.UInt64(index),
             claim_round=arc4.UInt64(claim_round),
         )
@@ -678,7 +736,7 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
             BetPlaced(
                 who=arc4.Address(Txn.sender),
                 amount=arc4.UInt64(bet_amount),
-                confirmed_round=arc4.UInt64(round),
+                confirmed_round=arc4.UInt64(confirmed_round),
                 index=arc4.UInt64(index),
                 claim_round=arc4.UInt64(claim_round),
             )
@@ -734,13 +792,17 @@ class SlotMachine(SlotMachineInterface, Ownable, Upgradeable, Stakeable, Deletea
             # get payout internal if subclass of SlotMachinePayoutModel
             # otherwise call model to get payout
             #########################################################
-            # payout = ar4.ab self._calculate_bet_payout(bet.amount.native, r)
-            payout, txn = arc4.abi_call(
-                SlotMachinePayoutModelInterface.get_payout,
-                bet.amount,
-                r,
-                app_id=Application(self.payout_model),
+            # use embedded payout model
+            payout = arc4.UInt64(
+                self._calculate_bet_payout(bet.amount.native, r.native)
             )
+            # use remote payout model
+            # payout, txn = arc4.abi_call(
+            #     SlotMachinePayoutModelInterface.get_payout,
+            #     bet.amount,
+            #     r,
+            #     app_id=Application(self.payout_model),
+            # )
             #########################################################
             # Update balance tracking
             #   Release locked balance and adjust available balance
@@ -805,14 +867,21 @@ class YieldBearingToken(ARC200Token, Ownable, Upgradeable, Deleteable, Stakeable
         assert Txn.sender == self.owner, "only owner can call this function"
 
     @arc4.abimethod
+    def post_update(self) -> None:
+        """
+        Post upgrade
+        """
+        assert Txn.sender == self.upgrader, "must be upgrader"
+
+    @arc4.abimethod
     def bootstrap(self) -> None:
         """
         Bootstrap the contract
         """
         self.only_owner()
         assert self.bootstrap_active == bool(), "bootstrap is not active"
-        self.name = String("House of Voi")
-        self.symbol = String("hVOI")
+        self.name = String("Voi Casino Demo")
+        self.symbol = String("VCD")
         self.decimals = UInt64(9)
         self.totalSupply = BigUInt(0)
         self.bootstrap_active = True
@@ -907,7 +976,9 @@ class YieldBearingToken(ARC200Token, Ownable, Upgradeable, Deleteable, Stakeable
         # Check payment
         payment = require_payment(Txn.sender)
         assert payment > BOX_COST_BALANCE, "payment insufficient"
-        deposit_amount = payment if self._balanceOf(Txn.sender) > 0 else payment - BOX_COST_BALANCE
+        deposit_amount = (
+            payment if self._balanceOf(Txn.sender) > 0 else payment - BOX_COST_BALANCE
+        )
         assert (
             deposit_amount > 0
         ), "deposit amount must be greater than 0"  # impossible because of assert above
